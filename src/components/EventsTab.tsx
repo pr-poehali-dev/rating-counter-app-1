@@ -41,7 +41,6 @@ export default function EventsTab({
   const [showCreateTeam, setShowCreateTeam] = useState<string | null>(null);
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamColor, setNewTeamColor] = useState(TEAM_COLORS[0].value);
-  const [showBonusTasks, setShowBonusTasks] = useState<string | null>(null);
   const [showAddBonus, setShowAddBonus] = useState<string | null>(null);
   const [newBonusName, setNewBonusName] = useState('');
   const [newBonusPoints, setNewBonusPoints] = useState('100');

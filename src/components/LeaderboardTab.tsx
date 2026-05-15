@@ -19,10 +19,7 @@ function getAvatarColor(id: string): string {
 export default function LeaderboardTab({ players, currentPlayerId }: LeaderboardTabProps) {
   const sorted = [...players].sort((a, b) => b.points - a.points);
   const top3 = sorted.slice(0, 3);
-  const rest = sorted.slice(3);
-
   const medalColors = ['var(--gold)', 'var(--silver)', 'var(--bronze)'];
-  const medalLabels = ['🥇', '🥈', '🥉'];
 
   return (
     <div className="pb-6 animate-fade-in">
