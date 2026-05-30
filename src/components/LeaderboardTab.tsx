@@ -4,6 +4,7 @@ import Icon from '@/components/ui/icon';
 interface LeaderboardTabProps {
   players: Player[];
   currentPlayerId: string;
+  onPlayerClick: (playerId: string) => void;
 }
 
 function getInitials(name: string): string {
@@ -16,7 +17,7 @@ function getAvatarColor(id: string): string {
   return colors[idx];
 }
 
-export default function LeaderboardTab({ players, currentPlayerId }: LeaderboardTabProps) {
+export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick }: LeaderboardTabProps) {
   const sorted = [...players].sort((a, b) => b.points - a.points);
   const top3 = sorted.slice(0, 3);
   const medalColors = ['var(--gold)', 'var(--silver)', 'var(--bronze)'];
@@ -32,7 +33,7 @@ export default function LeaderboardTab({ players, currentPlayerId }: Leaderboard
         <div className="flex gap-3 items-end mb-2">
           {/* 2nd */}
           {top3[1] && (
-            <div className="flex-1 flex flex-col items-center gap-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <div onClick={() => top3[1].id !== currentPlayerId && onPlayerClick(top3[1].id)} className="flex-1 flex flex-col items-center gap-2 animate-slide-up" style={{ animationDelay: '0.1s', cursor: top3[1].id !== currentPlayerId ? 'pointer' : 'default' }}>
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-sm border-2"
                 style={{ backgroundColor: getAvatarColor(top3[1].id), borderColor: 'var(--silver)' }}
@@ -60,7 +61,7 @@ export default function LeaderboardTab({ players, currentPlayerId }: Leaderboard
 
           {/* 1st */}
           {top3[0] && (
-            <div className="flex-1 flex flex-col items-center gap-2 animate-slide-up">
+            <div onClick={() => top3[0].id !== currentPlayerId && onPlayerClick(top3[0].id)} className="flex-1 flex flex-col items-center gap-2 animate-slide-up" style={{ cursor: top3[0].id !== currentPlayerId ? 'pointer' : 'default' }}>
               <div className="text-base">👑</div>
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-base border-2"
@@ -89,7 +90,7 @@ export default function LeaderboardTab({ players, currentPlayerId }: Leaderboard
 
           {/* 3rd */}
           {top3[2] && (
-            <div className="flex-1 flex flex-col items-center gap-2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <div onClick={() => top3[2].id !== currentPlayerId && onPlayerClick(top3[2].id)} className="flex-1 flex flex-col items-center gap-2 animate-slide-up" style={{ animationDelay: '0.2s', cursor: top3[2].id !== currentPlayerId ? 'pointer' : 'default' }}>
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-sm border-2"
                 style={{ backgroundColor: getAvatarColor(top3[2].id), borderColor: 'var(--bronze)' }}
@@ -133,6 +134,7 @@ export default function LeaderboardTab({ players, currentPlayerId }: Leaderboard
             return (
               <div
                 key={player.id}
+                onClick={() => !isMe && onPlayerClick(player.id)}
                 className="flex items-center gap-3 p-3 rounded-lg hover-scale"
                 style={{
                   background: isMe
@@ -141,6 +143,7 @@ export default function LeaderboardTab({ players, currentPlayerId }: Leaderboard
                   border: isMe
                     ? '1px solid rgba(245,166,35,0.3)'
                     : '1px solid hsl(var(--border))',
+                  cursor: isMe ? 'default' : 'pointer',
                 }}
               >
                 {/* Position */}

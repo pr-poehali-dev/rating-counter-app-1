@@ -4,6 +4,7 @@ import LeaderboardTab from '@/components/LeaderboardTab';
 import EventsTab from '@/components/EventsTab';
 import ProfileTab from '@/components/ProfileTab';
 import LoginScreen from '@/components/LoginScreen';
+import PlayerProfileView from '@/components/PlayerProfileView';
 import Icon from '@/components/ui/icon';
 
 // Admin emails
@@ -17,21 +18,25 @@ export default function App() {
   const [players, setPlayers] = useState<Player[]>(initialPlayers);
   const [games, setGames] = useState<Game[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+  const [viewingPlayerId, setViewingPlayerId] = useState<string | null>(null);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId) ?? null;
   const isAdmin = currentPlayer?.isAdmin ?? false;
 
   // --- Auth ---
-  function handleLogin(email: string, name: string) {
+  function handleLogin(email: string, password: string, name: string): string | null {
     const existing = players.find(p => p.email === email);
     if (existing) {
+      if (existing.password !== password) return 'Неверный пароль';
       setCurrentPlayerId(existing.id);
-      return;
+      return null;
     }
+    // Registration
     const newPlayer: Player = {
       id: uid(),
       name,
       email,
+      password,
       avatar: '',
       points: 0,
       wins: 0,
@@ -42,11 +47,22 @@ export default function App() {
     };
     setPlayers(prev => [...prev, newPlayer]);
     setCurrentPlayerId(newPlayer.id);
+    return null;
   }
 
   function handleLogout() {
     setCurrentPlayerId(null);
+    setViewingPlayerId(null);
     setActiveTab('leaderboard');
+  }
+
+  function handleViewPlayer(playerId: string) {
+    setViewingPlayerId(playerId);
+    setActiveTab('profile');
+  }
+
+  function handleCloseViewPlayer() {
+    setViewingPlayerId(null);
   }
 
   // --- Player ---
@@ -192,7 +208,19 @@ export default function App() {
 
   // --- Not logged in ---
   if (!currentPlayer) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return <LoginScreen players={players} onLogin={handleLogin} />;
+  }
+
+  // --- Viewing another player's profile ---
+  const viewingPlayer = viewingPlayerId ? players.find(p => p.id === viewingPlayerId) : null;
+  if (viewingPlayer) {
+    return (
+      <PlayerProfileView
+        player={viewingPlayer}
+        allPlayers={players}
+        onClose={handleCloseViewPlayer}
+      />
+    );
   }
 
   const tabs = [
@@ -247,7 +275,7 @@ export default function App() {
       {/* Content */}
       <div className="max-w-lg mx-auto pb-20">
         {activeTab === 'leaderboard' && (
-          <LeaderboardTab players={players} currentPlayerId={currentPlayerId!} />
+          <LeaderboardTab players={players} currentPlayerId={currentPlayerId!} onPlayerClick={handleViewPlayer} />
         )}
         {activeTab === 'events' && (
           <EventsTab

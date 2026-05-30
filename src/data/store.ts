@@ -4,6 +4,7 @@ export interface Player {
   id: string;
   name: string;
   email: string;
+  password: string;
   avatar: string;
   points: number;
   wins: number;
