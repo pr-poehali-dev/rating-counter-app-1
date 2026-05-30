@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Player, Game, Team, BonusTask, initialPlayers } from '@/data/store';
+import { Player, Game, Team, initialPlayers } from '@/data/store';
 import LeaderboardTab from '@/components/LeaderboardTab';
 import EventsTab from '@/components/EventsTab';
 import ProfileTab from '@/components/ProfileTab';
