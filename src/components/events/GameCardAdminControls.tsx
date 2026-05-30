@@ -28,7 +28,8 @@ interface GameCardAdminControlsProps {
   onSetNewBonusName: (val: string) => void;
   onSetNewBonusPoints: (val: string) => void;
   onAddPlayerToGame: (gameId: string, playerId: string) => void;
-  onDeclareWinner: (gameId: string, winnerTeamId: string) => void;
+  onStartGame: (gameId: string) => void;
+  onOpenFinishModal: () => void;
   onCreateTeam: (gameId: string) => void;
   onAddBonus: (gameId: string) => void;
 }
@@ -39,7 +40,7 @@ export default function GameCardAdminControls({
   newTeamName, newTeamColor, newBonusName, newBonusPoints,
   onSetShowAddPlayer, onSetShowCreateTeam, onSetShowAddBonus,
   onSetNewTeamName, onSetNewTeamColor, onSetNewBonusName, onSetNewBonusPoints,
-  onAddPlayerToGame, onDeclareWinner, onCreateTeam, onAddBonus,
+  onAddPlayerToGame, onStartGame, onOpenFinishModal, onCreateTeam, onAddBonus,
 }: GameCardAdminControlsProps) {
   if (game.status === 'finished') return null;
 
@@ -73,13 +74,25 @@ export default function GameCardAdminControls({
           <Icon name="Star" size={12} /> Доп. задача
         </button>
 
+        {/* Начать игру */}
         {game.status === 'recruiting' && game.teams.length >= 2 && (
           <button
-            onClick={() => onDeclareWinner(game.id, '')}
+            onClick={() => onStartGame(game.id)}
             className="flex items-center gap-1.5 text-xs px-3 py-2 rounded font-600"
             style={{ background: 'rgba(76,175,80,0.15)', color: '#4CAF50', border: '1px solid rgba(76,175,80,0.3)' }}
           >
             <Icon name="Play" size={12} /> Начать игру
+          </button>
+        )}
+
+        {/* Завершить с местами */}
+        {game.status === 'active' && game.teams.length >= 2 && (
+          <button
+            onClick={onOpenFinishModal}
+            className="flex items-center gap-1.5 text-xs px-3 py-2 rounded font-600"
+            style={{ background: 'rgba(245,166,35,0.15)', color: 'var(--gold)', border: '1px solid rgba(245,166,35,0.3)' }}
+          >
+            <Icon name="Trophy" size={12} /> Завершить игру
           </button>
         )}
       </div>

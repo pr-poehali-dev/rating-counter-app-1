@@ -25,7 +25,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'events' | 'profile'>('leaderboard');
   // players — загружаются с сервера, дополняются локально для игр
   const [players, setPlayers] = useState<Player[]>([]);
-  const [games, setGames] = useState<Game[]>(() => loadLocal('sb_games', []));
+  const [games, setGames] = useState<Game[]>(() =>
+    (loadLocal('sb_games', []) as Game[]).map(g => ({ placements: [], ...g }))
+  );
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(() => loadLocal('sb_current_player', null));
   const [viewingPlayerId, setViewingPlayerId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -115,7 +117,7 @@ export default function App() {
     const newGame: Game = {
       id: uid(), title, status: 'recruiting',
       teams: [], playerIds: [], winnerTeamId: null,
-      bonusTasks: [], createdAt: new Date().toISOString(),
+      placements: [], bonusTasks: [], createdAt: new Date().toISOString(),
     };
     setGames(prev => [newGame, ...prev]);
   }
@@ -176,40 +178,54 @@ export default function App() {
     }));
   }
 
-  function declareWinner(gameId: string, winnerTeamId: string) {
-    if (!winnerTeamId) {
-      setGames(prev => prev.map(g => g.id === gameId ? { ...g, status: 'active' } : g));
-      return;
-    }
+  // Запустить игру (из статуса recruiting → active)
+  function startGame(gameId: string) {
+    setGames(prev => prev.map(g => g.id === gameId ? { ...g, status: 'active' } : g));
+  }
 
+  // Завершить игру с расстановкой мест и начислением очков
+  function finishGame(gameId: string, placements: string[]) {
     const game = games.find(g => g.id === gameId);
     if (!game) return;
 
-    const winnerTeam = game.teams.find(t => t.id === winnerTeamId);
-    const loserTeams = game.teams.filter(t => t.id !== winnerTeamId);
-    if (!winnerTeam) return;
+    const n = placements.length;
 
-    const loserPlayerIds = loserTeams.flatMap(t => t.playerIds);
-    const winnerCount = winnerTeam.playerIds.length || 1;
-    const pointsPerWinner = Math.floor((loserPlayerIds.length * 100) / winnerCount);
+    // Обновляем игру
+    setGames(prev => prev.map(g =>
+      g.id === gameId
+        ? { ...g, status: 'finished', placements, winnerTeamId: placements[0] ?? null }
+        : g
+    ));
 
-    setGames(prev => prev.map(g => g.id === gameId ? { ...g, status: 'finished', winnerTeamId } : g));
-
-    // Обновляем очки локально и на сервере
+    // Начисляем очки по формуле:
+    // место 0 (1-е): +(n-1)*100
+    // место k (k+1-е): -k*100
     const updatedPlayers = players.map(p => {
-      if (winnerTeam.playerIds.includes(p.id))
-        return { ...p, points: p.points + pointsPerWinner, wins: p.wins + 1, gamesPlayed: p.gamesPlayed + 1 };
-      if (loserPlayerIds.includes(p.id))
-        return { ...p, points: Math.max(0, p.points - 100), losses: p.losses + 1, gamesPlayed: p.gamesPlayed + 1 };
-      return p;
+      const teamIdx = placements.findIndex(teamId => {
+        const team = game.teams.find(t => t.id === teamId);
+        return team?.playerIds.includes(p.id);
+      });
+      if (teamIdx === -1) return p; // не в игре — не трогаем
+
+      const delta = teamIdx === 0 ? (n - 1) * 100 : -teamIdx * 100;
+      const isWinner = teamIdx === 0;
+      const isLoser = teamIdx > 0;
+
+      return {
+        ...p,
+        points: Math.max(0, p.points + delta),
+        wins: p.wins + (isWinner ? 1 : 0),
+        losses: p.losses + (isLoser ? 1 : 0),
+        gamesPlayed: p.gamesPlayed + 1,
+      };
     });
     setPlayers(updatedPlayers);
 
     // Синхронизируем с сервером
-    const toSync = updatedPlayers.filter(p =>
-      winnerTeam.playerIds.includes(p.id) || loserPlayerIds.includes(p.id)
+    const allGamePlayerIds = placements.flatMap(teamId =>
+      game.teams.find(t => t.id === teamId)?.playerIds ?? []
     );
-    toSync.forEach(p => {
+    updatedPlayers.filter(p => allGamePlayerIds.includes(p.id)).forEach(p => {
       fetch(API_PLAYERS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -321,8 +337,8 @@ export default function App() {
             onJoinGame={joinGame} onLeaveGame={leaveGame} onCreateGame={createGame}
             onAddPlayerToGame={addPlayerToGame} onRemovePlayerFromGame={removePlayerFromGame}
             onCreateTeam={createTeam} onAssignPlayerToTeam={assignPlayerToTeam}
-            onDeclareWinner={declareWinner} onAddBonusTask={addBonusTask}
-            onCompleteBonusTask={completeBonusTask}
+            onStartGame={startGame} onFinishGame={finishGame}
+            onAddBonusTask={addBonusTask} onCompleteBonusTask={completeBonusTask}
           />
         )}
         {activeTab === 'profile' && (

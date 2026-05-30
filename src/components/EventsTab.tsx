@@ -5,6 +5,7 @@ import GameCardHeader from '@/components/events/GameCardHeader';
 import GameCardTeams from '@/components/events/GameCardTeams';
 import GameCardBonusTasks from '@/components/events/GameCardBonusTasks';
 import GameCardAdminControls from '@/components/events/GameCardAdminControls';
+import FinishGameModal from '@/components/events/FinishGameModal';
 
 interface EventsTabProps {
   games: Game[];
@@ -18,7 +19,8 @@ interface EventsTabProps {
   onRemovePlayerFromGame: (gameId: string, playerId: string) => void;
   onCreateTeam: (gameId: string, teamName: string, teamColor: string) => void;
   onAssignPlayerToTeam: (gameId: string, teamId: string, playerId: string) => void;
-  onDeclareWinner: (gameId: string, winnerTeamId: string) => void;
+  onStartGame: (gameId: string) => void;
+  onFinishGame: (gameId: string, placements: string[]) => void;
   onAddBonusTask: (gameId: string, taskName: string, taskPoints: number) => void;
   onCompleteBonusTask: (gameId: string, taskId: string, playerId: string) => void;
 }
@@ -31,7 +33,8 @@ export default function EventsTab({
   games, players, currentPlayer, isAdmin,
   onJoinGame, onLeaveGame, onCreateGame,
   onAddPlayerToGame, onRemovePlayerFromGame,
-  onCreateTeam, onAssignPlayerToTeam, onDeclareWinner,
+  onCreateTeam, onAssignPlayerToTeam,
+  onStartGame, onFinishGame,
   onAddBonusTask, onCompleteBonusTask,
 }: EventsTabProps) {
   const [showCreateGame, setShowCreateGame] = useState(false);
@@ -45,6 +48,7 @@ export default function EventsTab({
   const [newBonusName, setNewBonusName] = useState('');
   const [newBonusPoints, setNewBonusPoints] = useState('100');
   const [assignTarget, setAssignTarget] = useState<{ gameId: string; teamId: string } | null>(null);
+  const [finishingGameId, setFinishingGameId] = useState<string | null>(null);
 
   const activeGames = games.filter(g => g.status !== 'finished');
   const finishedGames = games.filter(g => g.status === 'finished');
@@ -81,6 +85,8 @@ export default function EventsTab({
     return players.filter(p => !game.playerIds.includes(p.id));
   }
 
+  const finishingGame = finishingGameId ? games.find(g => g.id === finishingGameId) : null;
+
   function renderGameCard(game: Game) {
     const isExpanded = expandedGame === game.id;
     const gamePlayers = getGamePlayers(game);
@@ -108,7 +114,7 @@ export default function EventsTab({
               gamePlayers={gamePlayers}
               isAdmin={isAdmin}
               assignTarget={assignTarget}
-              onDeclareWinner={onDeclareWinner}
+              onDeclareWinner={() => {}}
               onAssignPlayerToTeam={onAssignPlayerToTeam}
               onRemovePlayerFromGame={onRemovePlayerFromGame}
               onSetAssignTarget={setAssignTarget}
@@ -142,7 +148,8 @@ export default function EventsTab({
                 onSetNewBonusName={setNewBonusName}
                 onSetNewBonusPoints={setNewBonusPoints}
                 onAddPlayerToGame={onAddPlayerToGame}
-                onDeclareWinner={onDeclareWinner}
+                onStartGame={onStartGame}
+                onOpenFinishModal={() => setFinishingGameId(game.id)}
                 onCreateTeam={handleCreateTeam}
                 onAddBonus={handleAddBonus}
               />
@@ -235,6 +242,18 @@ export default function EventsTab({
           </div>
         )}
       </div>
+
+      {/* Finish game modal */}
+      {finishingGame && (
+        <FinishGameModal
+          game={finishingGame}
+          onFinish={(gameId, placements) => {
+            onFinishGame(gameId, placements);
+            setFinishingGameId(null);
+          }}
+          onCancel={() => setFinishingGameId(null)}
+        />
+      )}
     </div>
   );
 }

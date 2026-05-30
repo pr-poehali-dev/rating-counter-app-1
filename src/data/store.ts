@@ -35,6 +35,7 @@ export interface Game {
   teams: Team[];
   playerIds: string[]; // все игроки игры (до распределения по командам)
   winnerTeamId: string | null;
+  placements: string[]; // teamId[] по местам: [0]=1-е место, [1]=2-е место, ...
   bonusTasks: BonusTask[];
   createdAt: string;
 }

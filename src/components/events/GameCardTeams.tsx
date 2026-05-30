@@ -16,7 +16,7 @@ interface GameCardTeamsProps {
   gamePlayers: Player[];
   isAdmin: boolean;
   assignTarget: { gameId: string; teamId: string } | null;
-  onDeclareWinner: (gameId: string, winnerTeamId: string) => void;
+  onDeclareWinner: (gameId: string, winnerTeamId: string) => void; // kept for compat
   onAssignPlayerToTeam: (gameId: string, teamId: string, playerId: string) => void;
   onRemovePlayerFromGame: (gameId: string, playerId: string) => void;
   onSetAssignTarget: (target: { gameId: string; teamId: string } | null) => void;
@@ -25,7 +25,7 @@ interface GameCardTeamsProps {
 
 export default function GameCardTeams({
   game, players, gamePlayers, isAdmin, assignTarget,
-  onDeclareWinner, onAssignPlayerToTeam, onRemovePlayerFromGame,
+  onAssignPlayerToTeam, onRemovePlayerFromGame,
   onSetAssignTarget, getPlayerInTeam,
 }: GameCardTeamsProps) {
   const unassigned = gamePlayers.filter(p => !getPlayerInTeam(game, p.id));
@@ -51,20 +51,18 @@ export default function GameCardTeams({
                       </span>
                       <span className="text-xs text-muted-foreground">({teamPlayers.length})</span>
                     </div>
-                    {isAdmin && game.status === 'active' && !game.winnerTeamId && (
-                      <button
-                        onClick={() => onDeclareWinner(game.id, team.id)}
-                        className="text-xs px-2 py-1 rounded font-600"
-                        style={{ background: '#4CAF5020', color: '#4CAF50', border: '1px solid #4CAF5040' }}
-                      >
-                        🏆 Победа
-                      </button>
-                    )}
-                    {game.winnerTeamId === team.id && (
-                      <span className="text-xs px-2 py-1 rounded font-600" style={{ background: '#4CAF5020', color: '#4CAF50' }}>
-                        🏆 Победитель
-                      </span>
-                    )}
+                    {game.status === 'finished' && (() => {
+                      const place = game.placements.indexOf(team.id);
+                      if (place === -1) return null;
+                      const medals = ['🥇', '🥈', '🥉'];
+                      const label = medals[place] ?? `${place + 1}-е`;
+                      const color = place === 0 ? 'var(--gold)' : place === 1 ? 'var(--silver)' : place === 2 ? 'var(--bronze)' : 'hsl(var(--muted-foreground))';
+                      return (
+                        <span className="text-xs px-2 py-1 rounded font-600" style={{ background: `${color}20`, color }}>
+                          {label} место
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {teamPlayers.map(p => (
