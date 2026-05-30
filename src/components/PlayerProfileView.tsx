@@ -1,4 +1,4 @@
-import { Player, getRank, getNextRankThreshold } from '@/data/store';
+import { Player, Game, getRank, getNextRankThreshold } from '@/data/store';
 import Icon from '@/components/ui/icon';
 
 function getAvatarColor(id: string): string {
@@ -22,10 +22,11 @@ const RANKS = [
 interface PlayerProfileViewProps {
   player: Player;
   allPlayers: Player[];
+  games: Game[];
   onClose: () => void;
 }
 
-export default function PlayerProfileView({ player, allPlayers, onClose }: PlayerProfileViewProps) {
+export default function PlayerProfileView({ player, allPlayers, games, onClose }: PlayerProfileViewProps) {
   const rank = getRank(player.points);
   const rankInfo = RANKS.find(r => r.key === rank)!;
   const nextThreshold = getNextRankThreshold(player.points);
@@ -36,6 +37,12 @@ export default function PlayerProfileView({ player, allPlayers, onClose }: Playe
 
   const winRate = player.gamesPlayed > 0
     ? Math.round((player.wins / player.gamesPlayed) * 100) : 0;
+
+  const completedTasks = games.flatMap(game =>
+    game.bonusTasks
+      .filter(task => task.completedBy.includes(player.id))
+      .map(task => ({ taskName: task.name, taskPoints: task.points, gameName: game.title }))
+  );
 
   const rankIndex = [...allPlayers].sort((a, b) => b.points - a.points).findIndex(p => p.id === player.id) + 1;
 
@@ -200,6 +207,40 @@ export default function PlayerProfileView({ player, allPlayers, onClose }: Playe
               );
             })}
           </div>
+
+          {/* Completed bonus tasks */}
+          {completedTasks.length > 0 && (
+            <div>
+              <h3 className="font-montserrat text-xs font-700 uppercase tracking-widest text-muted-foreground mb-3">
+                Выполненные задания
+              </h3>
+              <div className="space-y-2">
+                {completedTasks.map((t, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between rounded-lg px-3 py-2.5"
+                    style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'rgba(245,166,35,0.15)' }}
+                      >
+                        <Icon name="Star" size={13} style={{ color: 'var(--gold)' }} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-montserrat font-600 text-foreground truncate">{t.taskName}</div>
+                        <div className="text-xs text-muted-foreground truncate">{t.gameName}</div>
+                      </div>
+                    </div>
+                    <span className="font-montserrat font-700 text-xs ml-2 flex-shrink-0" style={{ color: 'var(--gold)' }}>
+                      +{t.taskPoints}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

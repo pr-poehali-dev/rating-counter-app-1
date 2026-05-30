@@ -282,7 +282,7 @@ export default function App() {
   // --- Viewing another player ---
   const viewingPlayer = viewingPlayerId ? players.find(p => p.id === viewingPlayerId) : null;
   if (viewingPlayer) {
-    return <PlayerProfileView player={viewingPlayer} allPlayers={players} onClose={handleCloseViewPlayer} />;
+    return <PlayerProfileView player={viewingPlayer} allPlayers={players} games={games} onClose={handleCloseViewPlayer} />;
   }
 
   const tabs = [
@@ -346,6 +346,7 @@ export default function App() {
             player={currentPlayer}
             onUpdatePlayer={(updates) => updatePlayer(currentPlayerId!, updates)}
             allPlayers={players}
+            games={games}
             onLogout={handleLogout}
           />
         )}

@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { Player, getRank, getNextRankThreshold } from '@/data/store';
+import { Player, Game, getRank, getNextRankThreshold } from '@/data/store';
 import Icon from '@/components/ui/icon';
 
 interface ProfileTabProps {
   player: Player;
   onUpdatePlayer: (updates: Partial<Player>) => void;
   allPlayers: Player[];
+  games: Game[];
   onLogout: () => void;
 }
 
@@ -27,7 +28,7 @@ const RANKS = [
   { key: 'queen', label: 'Королева тьмы', emoji: '👸🔥', threshold: 25000, next: 25000, color: '#9C27B0' },
 ];
 
-export default function ProfileTab({ player, onUpdatePlayer, allPlayers, onLogout }: ProfileTabProps) {
+export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, onLogout }: ProfileTabProps) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(player.name);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,6 +45,13 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, onLogou
     ? Math.round((player.wins / player.gamesPlayed) * 100) : 0;
 
   const myRankIndex = allPlayers.sort((a, b) => b.points - a.points).findIndex(p => p.id === player.id) + 1;
+
+  // Собираем все выполненные доп. задания игрока
+  const completedTasks = games.flatMap(game =>
+    game.bonusTasks
+      .filter(task => task.completedBy.includes(player.id))
+      .map(task => ({ taskName: task.name, taskPoints: task.points, gameName: game.title }))
+  );
 
   function handleSave() {
     if (editName.trim()) {
@@ -252,6 +260,43 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, onLogou
             })}
           </div>
         </div>
+
+        {/* Completed bonus tasks */}
+        {completedTasks.length > 0 && (
+          <div>
+            <h3 className="font-montserrat text-xs font-700 uppercase tracking-widest text-muted-foreground mb-3">
+              Выполненные задания
+            </h3>
+            <div className="space-y-2">
+              {completedTasks.map((t, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-lg px-3 py-2.5"
+                  style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'rgba(245,166,35,0.15)' }}
+                    >
+                      <Icon name="Star" size={13} style={{ color: 'var(--gold)' }} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-montserrat font-600 text-foreground truncate">{t.taskName}</div>
+                      <div className="text-xs text-muted-foreground truncate">{t.gameName}</div>
+                    </div>
+                  </div>
+                  <span
+                    className="font-montserrat font-700 text-xs ml-2 flex-shrink-0"
+                    style={{ color: 'var(--gold)' }}
+                  >
+                    +{t.taskPoints}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Logout */}
         <div className="pt-2">
