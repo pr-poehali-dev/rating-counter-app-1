@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icon';
 
 const API_AUTH    = 'https://functions.poehali.dev/60849d96-2815-4a4a-8191-ba7b14448f64';
 const API_PLAYERS = 'https://functions.poehali.dev/bef8ca0b-1403-449d-b4a0-55ffe3af9432';
+const API_GAMES   = 'https://functions.poehali.dev/76b5dfc5-1eb5-46b7-8930-bfefc4e9a5a8';
 
 let nextId = 100;
 function uid() { return String(++nextId); }
@@ -25,9 +26,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'events' | 'profile'>('leaderboard');
   // players — загружаются с сервера, дополняются локально для игр
   const [players, setPlayers] = useState<Player[]>([]);
-  const [games, setGames] = useState<Game[]>(() =>
-    (loadLocal('sb_games', []) as Game[]).map(g => ({ placements: [], ...g }))
-  );
+  const [games, setGames] = useState<Game[]>([]);
+  const [gamesLoaded, setGamesLoaded] = useState(false);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(() => loadLocal('sb_current_player', null));
   const [viewingPlayerId, setViewingPlayerId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -36,10 +36,11 @@ export default function App() {
   const currentPlayer = players.find(p => p.id === currentPlayerId) ?? null;
   const isAdmin = currentPlayer?.isAdmin ?? false;
 
-  // Загружаем всех игроков с сервера при старте и периодически
+  // Загружаем игроков и игры при старте, обновляем периодически
   useEffect(() => {
     fetchPlayers();
-    const interval = setInterval(fetchPlayers, 15000);
+    fetchGames();
+    const interval = setInterval(() => { fetchPlayers(); fetchGames(); }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -53,7 +54,39 @@ export default function App() {
     } catch { setPlayersLoaded(true); }
   }
 
-  useEffect(() => { saveLocal('sb_games', games); }, [games]);
+  async function fetchGames() {
+    try {
+      const res = await fetch(API_GAMES);
+      const raw = await res.json();
+      const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      const serverGames: Game[] = (data.games || []).map((g: Game) => ({ placements: [], ...g }));
+
+      // Если на сервере пусто — мигрируем из localStorage (одноразово)
+      if (serverGames.length === 0) {
+        const local = (loadLocal('sb_games', []) as Game[]).map(g => ({ placements: [], ...g }));
+        if (local.length > 0) {
+          setGames(local);
+          local.forEach(g => syncGame(g));
+          localStorage.removeItem('sb_games');
+          setGamesLoaded(true);
+          return;
+        }
+      }
+
+      setGames(serverGames);
+      setGamesLoaded(true);
+    } catch { setGamesLoaded(true); }
+  }
+
+  // Сохраняет одну игру на сервер
+  function syncGame(game: Game) {
+    fetch(API_GAMES, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ game }),
+    }).catch(() => {});
+  }
+
   useEffect(() => { saveLocal('sb_current_player', currentPlayerId); }, [currentPlayerId]);
 
   // --- Auth ---
@@ -120,67 +153,103 @@ export default function App() {
       placements: [], bonusTasks: [], createdAt: new Date().toISOString(),
     };
     setGames(prev => [newGame, ...prev]);
+    syncGame(newGame);
   }
 
   function joinGame(gameId: string) {
     if (!currentPlayerId) return;
-    setGames(prev => prev.map(g =>
-      g.id === gameId && !g.playerIds.includes(currentPlayerId)
-        ? { ...g, playerIds: [...g.playerIds, currentPlayerId] } : g
-    ));
+    setGames(prev => {
+      const next = prev.map(g =>
+        g.id === gameId && !g.playerIds.includes(currentPlayerId)
+          ? { ...g, playerIds: [...g.playerIds, currentPlayerId] } : g
+      );
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   function leaveGame(gameId: string) {
     if (!currentPlayerId) return;
-    setGames(prev => prev.map(g =>
-      g.id === gameId ? {
-        ...g,
-        playerIds: g.playerIds.filter(id => id !== currentPlayerId),
-        teams: g.teams.map(t => ({ ...t, playerIds: t.playerIds.filter(id => id !== currentPlayerId) })),
-      } : g
-    ));
+    setGames(prev => {
+      const next = prev.map(g =>
+        g.id === gameId ? {
+          ...g,
+          playerIds: g.playerIds.filter(id => id !== currentPlayerId),
+          teams: g.teams.map(t => ({ ...t, playerIds: t.playerIds.filter(id => id !== currentPlayerId) })),
+        } : g
+      );
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   function addPlayerToGame(gameId: string, playerId: string) {
-    setGames(prev => prev.map(g =>
-      g.id === gameId && !g.playerIds.includes(playerId)
-        ? { ...g, playerIds: [...g.playerIds, playerId] } : g
-    ));
+    setGames(prev => {
+      const next = prev.map(g =>
+        g.id === gameId && !g.playerIds.includes(playerId)
+          ? { ...g, playerIds: [...g.playerIds, playerId] } : g
+      );
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   function removePlayerFromGame(gameId: string, playerId: string) {
-    setGames(prev => prev.map(g =>
-      g.id === gameId ? {
-        ...g,
-        playerIds: g.playerIds.filter(id => id !== playerId),
-        teams: g.teams.map(t => ({ ...t, playerIds: t.playerIds.filter(id => id !== playerId) })),
-      } : g
-    ));
+    setGames(prev => {
+      const next = prev.map(g =>
+        g.id === gameId ? {
+          ...g,
+          playerIds: g.playerIds.filter(id => id !== playerId),
+          teams: g.teams.map(t => ({ ...t, playerIds: t.playerIds.filter(id => id !== playerId) })),
+        } : g
+      );
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   function createTeam(gameId: string, teamName: string, teamColor: string) {
     const newTeam: Team = { id: uid(), name: teamName, color: teamColor, playerIds: [] };
-    setGames(prev => prev.map(g =>
-      g.id === gameId ? { ...g, teams: [...g.teams, newTeam], status: 'active' } : g
-    ));
+    setGames(prev => {
+      const next = prev.map(g =>
+        g.id === gameId ? { ...g, teams: [...g.teams, newTeam], status: 'active' } : g
+      );
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   function assignPlayerToTeam(gameId: string, teamId: string, playerId: string) {
-    setGames(prev => prev.map(g => {
-      if (g.id !== gameId) return g;
-      return {
-        ...g,
-        teams: g.teams.map(t => {
-          const without = { ...t, playerIds: t.playerIds.filter(id => id !== playerId) };
-          return t.id === teamId ? { ...without, playerIds: [...without.playerIds, playerId] } : without;
-        }),
-      };
-    }));
+    setGames(prev => {
+      const next = prev.map(g => {
+        if (g.id !== gameId) return g;
+        return {
+          ...g,
+          teams: g.teams.map(t => {
+            const without = { ...t, playerIds: t.playerIds.filter(id => id !== playerId) };
+            return t.id === teamId ? { ...without, playerIds: [...without.playerIds, playerId] } : without;
+          }),
+        };
+      });
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   // Запустить игру (из статуса recruiting → active)
   function startGame(gameId: string) {
-    setGames(prev => prev.map(g => g.id === gameId ? { ...g, status: 'active' } : g));
+    setGames(prev => {
+      const next = prev.map(g => g.id === gameId ? { ...g, status: 'active' } : g);
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   // Завершить игру с расстановкой мест и начислением очков
@@ -189,13 +258,11 @@ export default function App() {
     if (!game) return;
 
     const n = placements.length;
+    const finishedGame = { ...game, status: 'finished' as const, placements, winnerTeamId: placements[0] ?? null };
 
-    // Обновляем игру
-    setGames(prev => prev.map(g =>
-      g.id === gameId
-        ? { ...g, status: 'finished', placements, winnerTeamId: placements[0] ?? null }
-        : g
-    ));
+    // Обновляем игру и сразу синхронизируем
+    setGames(prev => prev.map(g => g.id === gameId ? finishedGame : g));
+    syncGame(finishedGame);
 
     // Начисляем очки по формуле:
     // место 0 (1-е): +(n-1)*100
@@ -236,7 +303,12 @@ export default function App() {
 
   function addBonusTask(gameId: string, taskName: string, taskPoints: number) {
     const newTask = { id: uid(), name: taskName, points: taskPoints, completedBy: [] };
-    setGames(prev => prev.map(g => g.id === gameId ? { ...g, bonusTasks: [...g.bonusTasks, newTask] } : g));
+    setGames(prev => {
+      const next = prev.map(g => g.id === gameId ? { ...g, bonusTasks: [...g.bonusTasks, newTask] } : g);
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
   }
 
   function completeBonusTask(gameId: string, taskId: string, playerId: string) {
@@ -244,12 +316,17 @@ export default function App() {
     const task = game?.bonusTasks.find(t => t.id === taskId);
     if (!task || task.completedBy.includes(playerId)) return;
 
-    setGames(prev => prev.map(g =>
-      g.id === gameId ? {
-        ...g,
-        bonusTasks: g.bonusTasks.map(t => t.id === taskId ? { ...t, completedBy: [...t.completedBy, playerId] } : t),
-      } : g
-    ));
+    setGames(prev => {
+      const next = prev.map(g =>
+        g.id === gameId ? {
+          ...g,
+          bonusTasks: g.bonusTasks.map(t => t.id === taskId ? { ...t, completedBy: [...t.completedBy, playerId] } : t),
+        } : g
+      );
+      const updated = next.find(g => g.id === gameId);
+      if (updated) syncGame(updated);
+      return next;
+    });
 
     const newPoints = (players.find(p => p.id === playerId)?.points ?? 0) + task.points;
     setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, points: p.points + task.points } : p));
@@ -261,7 +338,7 @@ export default function App() {
   }
 
   // --- Not logged in ---
-  if (!playersLoaded) {
+  if (!playersLoaded || !gamesLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--background))' }}>
         <div className="flex flex-col items-center gap-3">
