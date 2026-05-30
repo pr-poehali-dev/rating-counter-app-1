@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Register new player",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "register", "email": "test_sb@example.com", "password": "test123", "name": "Тест Игрок"},
+      "expectedStatus": 200,
+      "expectedBody": {"player": {}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Login existing player",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "login", "email": "test_sb@example.com", "password": "test123"},
+      "expectedStatus": 200,
+      "expectedBody": {"player": {}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Wrong password",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "login", "email": "test_sb@example.com", "password": "wrong"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "Неверный пароль"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -4,7 +4,8 @@ import Icon from '@/components/ui/icon';
 
 interface LoginScreenProps {
   players: Player[];
-  onLogin: (email: string, password: string, name: string) => string | null;
+  onLogin: (email: string, password: string, name: string) => Promise<string | null>;
+  loading?: boolean;
 }
 
 type Step = 'email' | 'login' | 'register';
@@ -17,7 +18,7 @@ function inputStyle(hasError: boolean) {
   };
 }
 
-export default function LoginScreen({ players, onLogin }: LoginScreenProps) {
+export default function LoginScreen({ players, onLogin, loading = false }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,17 +54,17 @@ export default function LoginScreen({ players, onLogin }: LoginScreenProps) {
     setStep(isExisting ? 'login' : 'register');
   }
 
-  function handleLoginSubmit() {
+  async function handleLoginSubmit() {
     if (!password) { setError('Введите пароль'); return; }
-    const err = onLogin(email.trim().toLowerCase(), password, '');
+    const err = await onLogin(email.trim().toLowerCase(), password, '');
     if (err) setError(err);
   }
 
-  function handleRegisterSubmit() {
+  async function handleRegisterSubmit() {
     if (!name.trim()) { setError('Введите имя'); return; }
     if (password.length < 6) { setError('Пароль минимум 6 символов'); return; }
     if (password !== confirmPassword) { setError('Пароли не совпадают'); return; }
-    const err = onLogin(email.trim().toLowerCase(), password, name.trim());
+    const err = await onLogin(email.trim().toLowerCase(), password, name.trim());
     if (err) setError(err);
   }
 
@@ -180,10 +181,11 @@ export default function LoginScreen({ players, onLogin }: LoginScreenProps) {
 
             <button
               onClick={handleLoginSubmit}
-              className="w-full py-2.5 rounded-lg font-montserrat font-700 text-sm flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full py-2.5 rounded-lg font-montserrat font-700 text-sm flex items-center justify-center gap-2 disabled:opacity-60"
               style={{ background: 'var(--gold)', color: 'hsl(var(--background))' }}
             >
-              Войти <Icon name="LogIn" size={15} />
+              {loading ? 'Вход...' : <> Войти <Icon name="LogIn" size={15} /> </>}
             </button>
 
             <button
@@ -281,10 +283,11 @@ export default function LoginScreen({ players, onLogin }: LoginScreenProps) {
 
             <button
               onClick={handleRegisterSubmit}
-              className="w-full py-2.5 rounded-lg font-montserrat font-700 text-sm flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full py-2.5 rounded-lg font-montserrat font-700 text-sm flex items-center justify-center gap-2 disabled:opacity-60"
               style={{ background: 'var(--gold)', color: 'hsl(var(--background))' }}
             >
-              Зарегистрироваться <Icon name="UserPlus" size={15} />
+              {loading ? 'Регистрация...' : <> Зарегистрироваться <Icon name="UserPlus" size={15} /> </>}
             </button>
 
             <button

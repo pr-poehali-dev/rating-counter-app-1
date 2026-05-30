@@ -1,0 +1,13 @@
+CREATE TABLE players (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password TEXT NOT NULL,
+  avatar TEXT DEFAULT '',
+  points INTEGER DEFAULT 0,
+  wins INTEGER DEFAULT 0,
+  losses INTEGER DEFAULT 0,
+  games_played INTEGER DEFAULT 0,
+  join_date DATE DEFAULT CURRENT_DATE,
+  is_admin BOOLEAN DEFAULT FALSE
+);

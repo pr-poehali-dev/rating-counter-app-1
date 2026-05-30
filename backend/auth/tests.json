@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "Login non-existent user returns 404",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "login", "email": "nobody_xyz999@example.com", "password": "test123"},
+      "expectedStatus": 404,
+      "expectedBody": {"error": "Аккаунт не найден"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing action returns 400",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "Неизвестное действие"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
