@@ -8,7 +8,7 @@ CORS = {
     'Access-Control-Allow-Headers': 'Content-Type',
 }
 
-ADMIN_EMAILS = ['dmitry.ilyin@example.com']
+ADMIN_EMAILS = ['dmitry.ilyin@example.com', 'swag.pro@mail.ru']
 
 
 def get_conn():
