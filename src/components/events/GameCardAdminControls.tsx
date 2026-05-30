@@ -104,19 +104,24 @@ export default function GameCardAdminControls({
           {availablePlayers.length === 0 ? (
             <div className="text-xs text-muted-foreground">Все игроки уже в игре</div>
           ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {availablePlayers.map(p => (
+            <div className="space-y-1">
+              {[...availablePlayers].sort((a, b) => b.points - a.points).map(p => (
                 <button
                   key={p.id}
                   onClick={() => { onAddPlayerToGame(game.id, p.id); }}
-                  className="flex items-center gap-1 text-xs px-2 py-1 rounded"
+                  className="flex items-center justify-between w-full text-xs px-2.5 py-1.5 rounded-lg"
                   style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }}
                 >
-                  <div className="w-4 h-4 rounded-full text-white flex items-center justify-center font-bold"
-                    style={{ background: getAvatarColor(p.id), fontSize: '8px' }}>
-                    {getInitials(p.name)}
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-full text-white flex items-center justify-center font-bold flex-shrink-0"
+                      style={{ background: getAvatarColor(p.id), fontSize: '8px' }}>
+                      {getInitials(p.name)}
+                    </div>
+                    <span className="font-600">{p.name}</span>
                   </div>
-                  {p.name.split(' ')[0]}
+                  <span className="text-muted-foreground font-montserrat font-600">
+                    {p.points.toLocaleString()} очков
+                  </span>
                 </button>
               ))}
             </div>

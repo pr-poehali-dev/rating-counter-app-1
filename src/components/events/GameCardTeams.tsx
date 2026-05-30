@@ -85,15 +85,24 @@ export default function GameCardTeams({
                     )}
                   </div>
                   {assignTarget?.teamId === team.id && isAdmin && (
-                    <div className="mt-2 flex flex-wrap gap-1">
+                    <div className="mt-2 space-y-1">
                       {gamePlayers.filter(p => !getPlayerInTeam(game, p.id)).map(p => (
                         <button
                           key={p.id}
                           onClick={() => { onAssignPlayerToTeam(game.id, team.id, p.id); onSetAssignTarget(null); }}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ background: `${team.color}20`, color: team.color, border: `1px solid ${team.color}40` }}
+                          className="flex items-center justify-between w-full text-xs px-2.5 py-1.5 rounded-lg"
+                          style={{ background: `${team.color}15`, color: team.color, border: `1px solid ${team.color}40` }}
                         >
-                          {p.name.split(' ')[0]}
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-4 h-4 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
+                              style={{ background: getAvatarColor(p.id), fontSize: '7px' }}>
+                              {getInitials(p.name)}
+                            </div>
+                            <span className="font-600">{p.name}</span>
+                          </div>
+                          <span className="font-montserrat font-700 opacity-80" style={{ color: team.color }}>
+                            {p.points.toLocaleString()} очков
+                          </span>
                         </button>
                       ))}
                     </div>

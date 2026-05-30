@@ -99,12 +99,7 @@ export default function GameCardBonusTasks({
                     </button>
                   )}
 
-                  {/* Админ: счётчик выполнивших (финиш) */}
-                  {isAdmin && game.status === 'finished' && (
-                    <span className="text-xs text-muted-foreground">
-                      {task.completedBy.length} выполнили
-                    </span>
-                  )}
+
                 </div>
               </div>
 
