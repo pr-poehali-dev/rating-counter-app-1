@@ -29,6 +29,20 @@ export default function LoginScreen({ players, onLogin }: LoginScreenProps) {
 
   const isExisting = players.some(p => p.email === email.trim().toLowerCase());
 
+  function switchToLogin() {
+    setError('');
+    setPassword('');
+    setConfirmPassword('');
+    setStep('login');
+  }
+
+  function switchToRegister() {
+    setError('');
+    setPassword('');
+    setConfirmPassword('');
+    setStep('register');
+  }
+
   function handleEmailNext() {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
@@ -171,6 +185,13 @@ export default function LoginScreen({ players, onLogin }: LoginScreenProps) {
             >
               Войти <Icon name="LogIn" size={15} />
             </button>
+
+            <button
+              onClick={switchToRegister}
+              className="w-full py-2 text-xs text-muted-foreground hover:text-foreground transition-colors font-montserrat"
+            >
+              Нет аккаунта? <span style={{ color: 'var(--gold)' }}>Зарегистрироваться</span>
+            </button>
           </>
         )}
 
@@ -264,6 +285,13 @@ export default function LoginScreen({ players, onLogin }: LoginScreenProps) {
               style={{ background: 'var(--gold)', color: 'hsl(var(--background))' }}
             >
               Зарегистрироваться <Icon name="UserPlus" size={15} />
+            </button>
+
+            <button
+              onClick={switchToLogin}
+              className="w-full py-2 text-xs text-muted-foreground hover:text-foreground transition-colors font-montserrat"
+            >
+              Уже есть аккаунт? <span style={{ color: 'var(--gold)' }}>Войти</span>
             </button>
           </>
         )}

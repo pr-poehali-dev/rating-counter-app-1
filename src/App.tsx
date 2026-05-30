@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Player, Game, Team, initialPlayers } from '@/data/store';
 import LeaderboardTab from '@/components/LeaderboardTab';
 import EventsTab from '@/components/EventsTab';
@@ -13,15 +13,30 @@ const ADMIN_EMAILS = ['dmitry.ilyin@example.com'];
 let nextId = 100;
 function uid() { return String(++nextId); }
 
+function loadState<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
+}
+
+function saveState(key: string, value: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'events' | 'profile'>('leaderboard');
-  const [players, setPlayers] = useState<Player[]>(initialPlayers);
-  const [games, setGames] = useState<Game[]>([]);
-  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+  const [players, setPlayers] = useState<Player[]>(() => loadState('sb_players', initialPlayers));
+  const [games, setGames] = useState<Game[]>(() => loadState('sb_games', []));
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(() => loadState('sb_current_player', null));
   const [viewingPlayerId, setViewingPlayerId] = useState<string | null>(null);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId) ?? null;
   const isAdmin = currentPlayer?.isAdmin ?? false;
+
+  useEffect(() => { saveState('sb_players', players); }, [players]);
+  useEffect(() => { saveState('sb_games', games); }, [games]);
+  useEffect(() => { saveState('sb_current_player', currentPlayerId); }, [currentPlayerId]);
 
   // --- Auth ---
   function handleLogin(email: string, password: string, name: string): string | null {
