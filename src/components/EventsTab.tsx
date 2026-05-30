@@ -123,6 +123,7 @@ export default function EventsTab({
 
             <GameCardBonusTasks
               game={game}
+              players={players}
               currentPlayer={currentPlayer}
               isAdmin={isAdmin}
               iAmIn={iAmIn}
