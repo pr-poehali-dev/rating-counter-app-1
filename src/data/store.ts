@@ -3,6 +3,7 @@ export type Rank = 'rookie' | 'wolf' | 'shark' | 'dragon' | 'skull' | 'queen';
 export interface Player {
   id: string;
   name: string;
+  email: string;
   avatar: string;
   points: number;
   wins: number;
@@ -91,86 +92,8 @@ export function getNextRankThreshold(points: number): number {
   return 25000;
 }
 
-// Initial demo data
-export const initialPlayers: Player[] = [
-  {
-    id: '1',
-    name: 'Дмитрий Ильин',
-    avatar: '',
-    points: 18400,
-    wins: 32,
-    losses: 8,
-    gamesPlayed: 40,
-    joinDate: '2024-01-15',
-    isAdmin: true,
-  },
-  {
-    id: '2',
-    name: 'Алексей Громов',
-    avatar: '',
-    points: 12750,
-    wins: 24,
-    losses: 10,
-    gamesPlayed: 34,
-    joinDate: '2024-02-20',
-    isAdmin: false,
-  },
-  {
-    id: '3',
-    name: 'Максим Кравцов',
-    avatar: '',
-    points: 9200,
-    wins: 18,
-    losses: 14,
-    gamesPlayed: 32,
-    joinDate: '2024-03-05',
-    isAdmin: false,
-  },
-  {
-    id: '4',
-    name: 'Сергей Волков',
-    avatar: '',
-    points: 6100,
-    wins: 12,
-    losses: 10,
-    gamesPlayed: 22,
-    joinDate: '2024-04-10',
-    isAdmin: false,
-  },
-  {
-    id: '5',
-    name: 'Игорь Платов',
-    avatar: '',
-    points: 4300,
-    wins: 8,
-    losses: 12,
-    gamesPlayed: 20,
-    joinDate: '2024-05-01',
-    isAdmin: false,
-  },
-  {
-    id: '6',
-    name: 'Николай Архипов',
-    avatar: '',
-    points: 2800,
-    wins: 5,
-    losses: 9,
-    gamesPlayed: 14,
-    joinDate: '2024-06-12',
-    isAdmin: false,
-  },
-  {
-    id: '7',
-    name: 'Артём Белов',
-    avatar: '',
-    points: 1500,
-    wins: 3,
-    losses: 7,
-    gamesPlayed: 10,
-    joinDate: '2024-07-18',
-    isAdmin: false,
-  },
-];
+// Players — populated at runtime via login
+export const initialPlayers: Player[] = [];
 
 export const TEAM_COLORS = [
   { value: '#E53935', label: 'Красный' },

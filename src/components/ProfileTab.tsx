@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { Player, getRank, getRankEmoji, getRankLabel, getNextRankThreshold } from '@/data/store';
+import { Player, getRank, getNextRankThreshold } from '@/data/store';
 import Icon from '@/components/ui/icon';
 
 interface ProfileTabProps {
   player: Player;
   onUpdatePlayer: (updates: Partial<Player>) => void;
   allPlayers: Player[];
+  onLogout: () => void;
 }
 
 function getAvatarColor(id: string): string {
@@ -26,7 +27,7 @@ const RANKS = [
   { key: 'queen', label: 'Королева тьмы', emoji: '👸🔥', threshold: 25000, next: 25000, color: '#9C27B0' },
 ];
 
-export default function ProfileTab({ player, onUpdatePlayer, allPlayers }: ProfileTabProps) {
+export default function ProfileTab({ player, onUpdatePlayer, allPlayers, onLogout }: ProfileTabProps) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(player.name);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -250,6 +251,18 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers }: Profi
               );
             })}
           </div>
+        </div>
+
+        {/* Logout */}
+        <div className="pt-2">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-montserrat font-600 text-sm transition-colors"
+            style={{ background: 'rgba(229,57,53,0.08)', color: '#E53935', border: '1px solid rgba(229,57,53,0.2)' }}
+          >
+            <Icon name="LogOut" size={15} />
+            Выйти из аккаунта
+          </button>
         </div>
       </div>
     </div>

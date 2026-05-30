@@ -3,10 +3,11 @@ import { Player, Game, Team, initialPlayers } from '@/data/store';
 import LeaderboardTab from '@/components/LeaderboardTab';
 import EventsTab from '@/components/EventsTab';
 import ProfileTab from '@/components/ProfileTab';
+import LoginScreen from '@/components/LoginScreen';
 import Icon from '@/components/ui/icon';
 
-// Current user — first player (Дмитрий Ильин, admin)
-const CURRENT_USER_ID = '1';
+// Admin emails
+const ADMIN_EMAILS = ['dmitry.ilyin@example.com'];
 
 let nextId = 100;
 function uid() { return String(++nextId); }
@@ -15,14 +16,45 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'events' | 'profile'>('leaderboard');
   const [players, setPlayers] = useState<Player[]>(initialPlayers);
   const [games, setGames] = useState<Game[]>([]);
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
 
-  const currentPlayer = players.find(p => p.id === CURRENT_USER_ID)!;
-  const isAdmin = currentPlayer.isAdmin;
+  const currentPlayer = players.find(p => p.id === currentPlayerId) ?? null;
+  const isAdmin = currentPlayer?.isAdmin ?? false;
 
+  // --- Auth ---
+  function handleLogin(email: string, name: string) {
+    const existing = players.find(p => p.email === email);
+    if (existing) {
+      setCurrentPlayerId(existing.id);
+      return;
+    }
+    const newPlayer: Player = {
+      id: uid(),
+      name,
+      email,
+      avatar: '',
+      points: 0,
+      wins: 0,
+      losses: 0,
+      gamesPlayed: 0,
+      joinDate: new Date().toISOString().slice(0, 10),
+      isAdmin: ADMIN_EMAILS.includes(email),
+    };
+    setPlayers(prev => [...prev, newPlayer]);
+    setCurrentPlayerId(newPlayer.id);
+  }
+
+  function handleLogout() {
+    setCurrentPlayerId(null);
+    setActiveTab('leaderboard');
+  }
+
+  // --- Player ---
   function updatePlayer(id: string, updates: Partial<Player>) {
     setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
   }
 
+  // --- Games ---
   function createGame(title: string) {
     const newGame: Game = {
       id: uid(),
@@ -38,20 +70,22 @@ export default function App() {
   }
 
   function joinGame(gameId: string) {
+    if (!currentPlayerId) return;
     setGames(prev => prev.map(g =>
-      g.id === gameId && !g.playerIds.includes(CURRENT_USER_ID)
-        ? { ...g, playerIds: [...g.playerIds, CURRENT_USER_ID] }
+      g.id === gameId && !g.playerIds.includes(currentPlayerId)
+        ? { ...g, playerIds: [...g.playerIds, currentPlayerId] }
         : g
     ));
   }
 
   function leaveGame(gameId: string) {
+    if (!currentPlayerId) return;
     setGames(prev => prev.map(g =>
       g.id === gameId
         ? {
           ...g,
-          playerIds: g.playerIds.filter(id => id !== CURRENT_USER_ID),
-          teams: g.teams.map(t => ({ ...t, playerIds: t.playerIds.filter(id => id !== CURRENT_USER_ID) })),
+          playerIds: g.playerIds.filter(id => id !== currentPlayerId),
+          teams: g.teams.map(t => ({ ...t, playerIds: t.playerIds.filter(id => id !== currentPlayerId) })),
         }
         : g
     ));
@@ -134,7 +168,7 @@ export default function App() {
   }
 
   function addBonusTask(gameId: string, taskName: string, taskPoints: number) {
-    const newTask: BonusTask = { id: uid(), name: taskName, points: taskPoints, completedBy: [] };
+    const newTask = { id: uid(), name: taskName, points: taskPoints, completedBy: [] };
     setGames(prev => prev.map(g =>
       g.id === gameId ? { ...g, bonusTasks: [...g.bonusTasks, newTask] } : g
     ));
@@ -156,11 +190,18 @@ export default function App() {
     ));
   }
 
+  // --- Not logged in ---
+  if (!currentPlayer) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
   const tabs = [
     { key: 'leaderboard' as const, label: 'Рейтинг', icon: 'Trophy' as const },
     { key: 'events' as const, label: 'События', icon: 'Crosshair' as const },
     { key: 'profile' as const, label: 'Профиль', icon: 'User' as const },
   ];
+
+  const avatarColors = ['#E53935', '#1E88E5', '#43A047', '#F5A623', '#8E24AA', '#00ACC1', '#FF6F00'];
 
   return (
     <div className="min-h-screen" style={{ background: 'hsl(var(--background))' }}>
@@ -194,7 +235,7 @@ export default function App() {
           )}
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xs overflow-hidden"
-            style={{ background: ['#E53935', '#1E88E5', '#43A047', '#F5A623', '#8E24AA', '#00ACC1', '#FF6F00'][parseInt(CURRENT_USER_ID) % 7] }}
+            style={{ background: avatarColors[parseInt(currentPlayerId!) % avatarColors.length] }}
           >
             {currentPlayer.avatar ? (
               <img src={currentPlayer.avatar} className="w-full h-full object-cover" alt="" />
@@ -206,7 +247,7 @@ export default function App() {
       {/* Content */}
       <div className="max-w-lg mx-auto pb-20">
         {activeTab === 'leaderboard' && (
-          <LeaderboardTab players={players} currentPlayerId={CURRENT_USER_ID} />
+          <LeaderboardTab players={players} currentPlayerId={currentPlayerId!} />
         )}
         {activeTab === 'events' && (
           <EventsTab
@@ -229,8 +270,9 @@ export default function App() {
         {activeTab === 'profile' && (
           <ProfileTab
             player={currentPlayer}
-            onUpdatePlayer={(updates) => updatePlayer(CURRENT_USER_ID, updates)}
+            onUpdatePlayer={(updates) => updatePlayer(currentPlayerId!, updates)}
             allPlayers={players}
+            onLogout={handleLogout}
           />
         )}
       </div>
