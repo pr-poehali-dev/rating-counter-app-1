@@ -62,8 +62,55 @@
   }
 
   body {
-    @apply bg-background text-foreground font-roboto;
+    @apply text-foreground font-roboto;
     font-family: "Roboto", sans-serif;
+    background: #000;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(
+        ellipse 60% 80% at 30% 100%,
+        #ff4500cc 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 50% 70% at 70% 100%,
+        #ff6a00bb 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 40% 60% at 50% 100%,
+        #ff8c00aa 0%,
+        transparent 50%
+      ),
+      #000;
+    animation: flameDance 4s ease-in-out infinite alternate;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(
+        ellipse 35% 55% at 20% 95%,
+        #ff2200aa 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 45% 65% at 80% 98%,
+        #ff5500aa 0%,
+        transparent 55%
+      ),
+      radial-gradient(ellipse 30% 45% at 50% 90%, #ffaa0077 0%, transparent 50%);
+    animation: flameDance2 3s ease-in-out infinite alternate;
   }
 
   h1,
@@ -136,6 +183,48 @@
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
+  }
+}
+
+@keyframes flameDance {
+  0% {
+    transform: scaleX(1) scaleY(1) translateY(0);
+    opacity: 1;
+  }
+  25% {
+    transform: scaleX(1.08) scaleY(0.96) translateY(10px);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scaleX(0.94) scaleY(1.06) translateY(-8px);
+    opacity: 1;
+  }
+  75% {
+    transform: scaleX(1.05) scaleY(0.98) translateY(6px);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scaleX(0.97) scaleY(1.04) translateY(-5px);
+    opacity: 1;
+  }
+}
+
+@keyframes flameDance2 {
+  0% {
+    transform: scaleX(0.96) scaleY(1.05) translateY(-6px);
+    opacity: 0.85;
+  }
+  30% {
+    transform: scaleX(1.1) scaleY(0.93) translateY(12px);
+    opacity: 1;
+  }
+  60% {
+    transform: scaleX(0.92) scaleY(1.08) translateY(-10px);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scaleX(1.04) scaleY(0.97) translateY(8px);
+    opacity: 1;
   }
 }
 
