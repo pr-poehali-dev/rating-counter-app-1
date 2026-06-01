@@ -29,9 +29,9 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
   const MEDALS = [
     {
       num: '1',
-      mobSize: 'text-3xl', lgSize: 'text-6xl',
-      gradient: 'linear-gradient(160deg, #fff7c0 0%, #f5a623 35%, #c97b00 65%, #ffe066 100%)',
-      shadow: '0 2px 12px rgba(245,166,35,0.6), 0 1px 0 #fff9d0 inset',
+      mobSize: 'text-5xl', lgSize: 'text-9xl',
+      gradient: 'linear-gradient(175deg, #fffbe0 0%, #ffe566 15%, #f5a623 35%, #b8700a 55%, #7a4500 72%, #e8a800 85%, #fff5a0 100%)',
+      shadow: '0 0 32px rgba(255,180,0,0.9), 0 0 8px rgba(255,220,80,0.8)',
     },
     {
       num: '2',
