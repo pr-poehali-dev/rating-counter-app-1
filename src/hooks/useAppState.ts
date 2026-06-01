@@ -48,8 +48,10 @@ export function useAppState() {
         } catch { /* игнорируем */ }
       }
 
+      const freshAvatars: Record<string, string> = {};
       if (savedPlayerId && myAvatar) {
         saveAvatarToCache(savedPlayerId, myAvatar);
+        freshAvatars[savedPlayerId] = myAvatar;
       }
 
       const serverPlayers: Player[] = (data.players || []).map((p: Player) => ({
@@ -58,7 +60,7 @@ export function useAppState() {
       }));
 
       if (serverPlayers.length > 0) {
-        setPlayers(mergeAvatars(serverPlayers));
+        setPlayers(mergeAvatars(serverPlayers, freshAvatars));
       }
       setPlayersLoaded(true);
 
@@ -151,20 +153,18 @@ export function useAppState() {
   function handleViewPlayer(playerId: string) {
     setViewingPlayerId(playerId);
     setActiveTab('profile');
-    const cachedAvatar = loadAvatarCache()[playerId];
-    if (!cachedAvatar) {
-      fetch(`${API_PLAYERS}?id=${playerId}`)
-        .then(r => r.json())
-        .then(raw => {
-          const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-          const avatar = data.player?.avatar;
-          if (avatar) {
-            saveAvatarToCache(playerId, avatar);
-            setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, avatar } : p));
-          }
-        })
-        .catch(() => {});
-    }
+    // Всегда запрашиваем свежий аватар — кеш мог устареть если игрок его сменил
+    fetch(`${API_PLAYERS}?id=${playerId}`)
+      .then(r => r.json())
+      .then(raw => {
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        const avatar = data.player?.avatar;
+        if (avatar) {
+          saveAvatarToCache(playerId, avatar);
+          setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, avatar } : p));
+        }
+      })
+      .catch(() => {});
   }
 
   function handleCloseViewPlayer() {

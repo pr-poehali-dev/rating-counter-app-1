@@ -27,7 +27,13 @@ export function saveAvatarToCache(playerId: string, avatar: string) {
   saveLocal('sb_avatar_cache', cache);
 }
 
-export function mergeAvatars(players: Player[]): Player[] {
+// Восстанавливает аватары из кеша только если сервер не вернул аватар
+// (сервер возвращает avatar:'' для экономии трафика в списке)
+export function mergeAvatars(players: Player[], freshAvatars: Record<string, string> = {}): Player[] {
   const cache = loadAvatarCache();
-  return players.map(p => ({ ...p, avatar: p.avatar || cache[p.id] || '' }));
+  return players.map(p => ({
+    ...p,
+    // freshAvatars (из параллельного запроса) > cache > пусто
+    avatar: freshAvatars[p.id] || cache[p.id] || '',
+  }));
 }
