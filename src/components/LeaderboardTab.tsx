@@ -93,7 +93,14 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
     <div className="pb-6 lg:pb-8 animate-fade-in">
       {/* Top 3 podium */}
       <div className="px-4 pt-4 mb-4 lg:px-8 lg:pt-10 lg:mb-10">
-        <h2 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground mb-4 lg:mb-8 lg:text-center">
+        <h2
+          className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest mb-4 lg:mb-8 lg:text-center"
+          style={{
+            color: '#f5a623',
+            textShadow: '0 0 8px rgba(245,166,35,0.9), 0 0 20px rgba(245,166,35,0.6), 0 0 40px rgba(245,100,0,0.4)',
+            letterSpacing: '0.2em',
+          }}
+        >
           Топ игроки
         </h2>
 
@@ -108,18 +115,27 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
             const playerRank = getRank(player.points);
             const podiumStyle = getPodiumStyle(playerRank, rank as 0 | 1 | 2);
 
-            const MetalNum = ({ cls }: { cls: string }) => (
-              <div className="relative flex items-center justify-center select-none" style={{ lineHeight: 1 }}>
-                {/* Фон — кнопка из картинки */}
+            const MetalNum = ({ isMob }: { isMob: boolean }) => (
+              <div
+                className="relative flex items-center justify-center select-none flex-shrink-0"
+                style={{
+                  width: isMob
+                    ? (rank === 0 ? '52px' : '36px')
+                    : (rank === 0 ? '110px' : '72px'),
+                  height: isMob
+                    ? (rank === 0 ? '52px' : '36px')
+                    : (rank === 0 ? '110px' : '72px'),
+                }}
+              >
                 <img
-                  src="https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/42ef145a-3460-4394-83bd-dc1e732da0bf.jpg"
+                  src="https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/ff944d12-99ed-441b-a795-86f084b02bc5.png"
                   alt=""
                   aria-hidden
-                  className="absolute inset-0 w-full h-full object-cover rounded-xl"
-                  style={{ opacity: 0.85 }}
+                  className="absolute inset-0 w-full h-full object-cover rounded-2xl"
+                  style={{ opacity: 0.92 }}
                 />
                 <span
-                  className={`${cls} relative z-10`}
+                  className={`relative z-10 ${isMob ? medal.mobSize : medal.lgSize}`}
                   style={{
                     fontFamily: '"Bebas Neue", sans-serif',
                     background: medal.gradient,
@@ -129,7 +145,6 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                     filter: `drop-shadow(${medal.shadow.split(',')[0]})`,
                     lineHeight: 1,
                     letterSpacing: '-0.02em',
-                    padding: '0.1em 0.25em',
                   }}
                 >
                   {medal.num}
@@ -142,7 +157,7 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                 key={player.id}
                 onClick={() => !isMe && onPlayerClick(player.id)}
                 className="flex-1 flex flex-col items-center gap-1.5 lg:gap-3 animate-slide-up"
-                style={{ animationDelay: `${i * 0.1}s`, cursor: isMe ? 'default' : 'pointer' }}
+                style={{ animationDelay: `${i * 0.1}s`, cursor: isMe ? 'default' : 'pointer', minWidth: 0 }}
               >
                 {rank === 0 && <div className="text-lg lg:text-4xl mb-1">👑</div>}
                 {/* Mobile avatar */}
@@ -153,7 +168,6 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                   >
                     {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
                   </div>
-                  {/* Лого ранга — мобиль */}
                   <div className="absolute -bottom-2 -right-2 z-10">
                     <RankIcon val={getRankEmoji(playerRank)} size={22} />
                   </div>
@@ -166,21 +180,24 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                   >
                     {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
                   </div>
-                  {/* Лого ранга — десктоп */}
                   <div className="absolute -bottom-3 -right-3 z-10">
                     <RankIcon val={getRankEmoji(playerRank)} size={44} />
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs lg:text-base font-montserrat font-700 text-foreground leading-tight">
+                {/* Имя — фиксированная ширина чтобы не двигало педестал */}
+                <div className="text-center w-full overflow-hidden">
+                  <div
+                    className="text-xs lg:text-base font-montserrat font-700 text-foreground leading-tight truncate px-1"
+                    title={player.name}
+                  >
                     {player.name.split(' ')[0]}
                   </div>
                   <div className="text-xs lg:text-sm font-600" style={{ color: flame.pointColor }}>
                     {player.points.toLocaleString()}
                   </div>
                 </div>
-                <MetalNum cls={`lg:hidden ${medal.mobSize}`} />
-                <div className="hidden lg:block"><MetalNum cls={medal.lgSize} /></div>
+                <div className="lg:hidden"><MetalNum isMob={true} /></div>
+                <div className="hidden lg:block"><MetalNum isMob={false} /></div>
               </div>
             );
           })}
