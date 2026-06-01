@@ -31,7 +31,7 @@ function getInitials(name: string): string {
 }
 
 const RANKS = [
-  { key: 'rookie', label: 'Новобранец', emoji: '🎯', threshold: 0, next: 5000, color: '#9CA3AF' },
+  { key: 'rookie', label: 'Новобранец', emoji: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/e7a7031a-aca7-4491-bcc2-14c2086ce132.png', threshold: 0, next: 5000, color: '#9CA3AF' },
   { key: 'wolf', label: 'Волк', emoji: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/4db688e7-c3fb-469f-af8c-82790cf63902.png', threshold: 5000, next: 10000, color: '#6B7280' },
   { key: 'shark', label: 'Акула', emoji: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/8f89b1e6-90d8-466e-a04f-fddb6cd10743.png', threshold: 10000, next: 15000, color: '#1E88E5' },
   { key: 'dragon', label: 'Дракон', emoji: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/b5ded5b4-9f99-4143-a2d0-f14ce6c8fe95.png', threshold: 15000, next: 20000, color: '#E53935' },
