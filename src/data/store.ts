@@ -66,7 +66,7 @@ export function getRankEmoji(rank: Rank): string {
     rookie: '🎯',
     wolf: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/4db688e7-c3fb-469f-af8c-82790cf63902.png',
     shark: '🦈',
-    dragon: '🐉',
+    dragon: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/b5ded5b4-9f99-4143-a2d0-f14ce6c8fe95.png',
     skull: '💀',
     queen: '👸',
   };

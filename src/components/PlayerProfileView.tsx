@@ -25,7 +25,7 @@ const RANKS = [
   { key: 'rookie', label: 'Новобранец', emoji: '🎯', threshold: 0, color: '#9CA3AF' },
   { key: 'wolf',   label: 'Волк',          emoji: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/4db688e7-c3fb-469f-af8c-82790cf63902.png', threshold: 5000,  color: '#6B7280' },
   { key: 'shark',  label: 'Акула',         emoji: '🦈', threshold: 10000, color: '#1E88E5' },
-  { key: 'dragon', label: 'Дракон',        emoji: '🐉', threshold: 15000, color: '#E53935' },
+  { key: 'dragon', label: 'Дракон',        emoji: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/b5ded5b4-9f99-4143-a2d0-f14ce6c8fe95.png', threshold: 15000, color: '#E53935' },
   { key: 'skull',  label: 'Владыка',       emoji: '💀', threshold: 20000, color: '#F5A623' },
   { key: 'queen',  label: 'Королева тьмы', emoji: '👸', threshold: 25000, color: '#9C27B0' },
 ];
