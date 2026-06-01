@@ -67,7 +67,7 @@ export function getRankEmoji(rank: Rank): string {
     wolf: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/4db688e7-c3fb-469f-af8c-82790cf63902.png',
     shark: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/8f89b1e6-90d8-466e-a04f-fddb6cd10743.png',
     dragon: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/b5ded5b4-9f99-4143-a2d0-f14ce6c8fe95.png',
-    skull: '💀',
+    skull: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/39af4433-12b1-43ff-b15d-cfde6640b51d.png',
     queen: '👸',
   };
   return emojis[rank];
