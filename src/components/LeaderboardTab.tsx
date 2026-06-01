@@ -109,21 +109,32 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
             const podiumStyle = getPodiumStyle(playerRank, rank as 0 | 1 | 2);
 
             const MetalNum = ({ cls }: { cls: string }) => (
-              <span
-                className={`${cls} select-none`}
-                style={{
-                  fontFamily: '"Bebas Neue", sans-serif',
-                  background: medal.gradient,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  filter: `drop-shadow(${medal.shadow.split(',')[0]})`,
-                  lineHeight: 1,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {medal.num}
-              </span>
+              <div className="relative flex items-center justify-center select-none" style={{ lineHeight: 1 }}>
+                {/* Фон — кнопка из картинки */}
+                <img
+                  src="https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/42ef145a-3460-4394-83bd-dc1e732da0bf.jpg"
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                  style={{ opacity: 0.85 }}
+                />
+                <span
+                  className={`${cls} relative z-10`}
+                  style={{
+                    fontFamily: '"Bebas Neue", sans-serif',
+                    background: medal.gradient,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter: `drop-shadow(${medal.shadow.split(',')[0]})`,
+                    lineHeight: 1,
+                    letterSpacing: '-0.02em',
+                    padding: '0.1em 0.25em',
+                  }}
+                >
+                  {medal.num}
+                </span>
+              </div>
             );
 
             return (
@@ -135,18 +146,30 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
               >
                 {rank === 0 && <div className="text-lg lg:text-4xl mb-1">👑</div>}
                 {/* Mobile avatar */}
-                <div
-                  className={`${avatarMob} lg:hidden rounded-full flex items-center justify-center text-white font-montserrat font-bold border-2 overflow-hidden ${flame.ring}`}
-                  style={{ backgroundColor: getAvatarColor(player.id) }}
-                >
-                  {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
+                <div className="lg:hidden relative flex-shrink-0">
+                  <div
+                    className={`${avatarMob} rounded-full flex items-center justify-center text-white font-montserrat font-bold border-2 overflow-hidden ${flame.ring}`}
+                    style={{ backgroundColor: getAvatarColor(player.id) }}
+                  >
+                    {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
+                  </div>
+                  {/* Лого ранга — мобиль */}
+                  <div className="absolute -bottom-2 -right-2 z-10">
+                    <RankIcon val={getRankEmoji(playerRank)} size={22} />
+                  </div>
                 </div>
                 {/* Desktop avatar */}
-                <div
-                  className={`${avatarLg} hidden lg:flex rounded-full items-center justify-center text-white font-montserrat font-bold text-2xl border-2 overflow-hidden ${flame.ring}`}
-                  style={{ backgroundColor: getAvatarColor(player.id) }}
-                >
-                  {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
+                <div className="hidden lg:block relative flex-shrink-0">
+                  <div
+                    className={`${avatarLg} flex rounded-full items-center justify-center text-white font-montserrat font-bold text-2xl border-2 overflow-hidden ${flame.ring}`}
+                    style={{ backgroundColor: getAvatarColor(player.id) }}
+                  >
+                    {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
+                  </div>
+                  {/* Лого ранга — десктоп */}
+                  <div className="absolute -bottom-3 -right-3 z-10">
+                    <RankIcon val={getRankEmoji(playerRank)} size={44} />
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs lg:text-base font-montserrat font-700 text-foreground leading-tight">
