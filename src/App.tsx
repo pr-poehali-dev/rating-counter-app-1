@@ -5,6 +5,7 @@ import EventsTab from '@/components/EventsTab';
 import ProfileTab from '@/components/ProfileTab';
 import LoginScreen from '@/components/LoginScreen';
 import PlayerProfileView from '@/components/PlayerProfileView';
+import VictoryModal from '@/components/VictoryModal';
 import Icon from '@/components/ui/icon';
 
 const API_AUTH    = 'https://functions.poehali.dev/60849d96-2815-4a4a-8191-ba7b14448f64';
@@ -32,6 +33,7 @@ export default function App() {
   const [viewingPlayerId, setViewingPlayerId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [playersLoaded, setPlayersLoaded] = useState(false);
+  const [victoryGame, setVictoryGame] = useState<{ name: string } | null>(null);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId) ?? null;
   const isAdmin = currentPlayer?.isAdmin ?? false;
@@ -260,6 +262,15 @@ export default function App() {
     // Обновляем игру и сразу синхронизируем
     setGames(prev => prev.map(g => g.id === gameId ? finishedGame : g));
     syncGame(finishedGame);
+
+    // Проверяем — победил ли текущий игрок
+    if (currentPlayerId) {
+      const winnerTeamId = placements[0];
+      const winnerTeam = game.teams.find(t => t.id === winnerTeamId);
+      if (winnerTeam?.playerIds.includes(currentPlayerId)) {
+        setVictoryGame({ name: game.title });
+      }
+    }
 
     // Начисляем очки по формуле:
     // место 0 (1-е): +(n-1)*100
@@ -510,6 +521,10 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {victoryGame && (
+        <VictoryModal gameName={victoryGame.name} onClose={() => setVictoryGame(null)} />
+      )}
     </div>
   );
 }

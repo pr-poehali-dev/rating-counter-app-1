@@ -101,6 +101,7 @@ export default function EventsTab({
           isAdmin={isAdmin}
           isExpanded={isExpanded}
           iAmIn={iAmIn}
+          currentPlayerId={currentPlayer.id}
           onToggleExpand={() => setExpandedGame(isExpanded ? null : game.id)}
           onJoinGame={onJoinGame}
           onLeaveGame={onLeaveGame}
