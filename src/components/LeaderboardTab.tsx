@@ -26,10 +26,31 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
   const sorted = [...players].sort((a, b) => b.points - a.points);
   const top3 = sorted.slice(0, 3);
 
+  const MEDALS = [
+    {
+      num: '1',
+      mobSize: 'text-3xl', lgSize: 'text-6xl',
+      gradient: 'linear-gradient(160deg, #fff7c0 0%, #f5a623 35%, #c97b00 65%, #ffe066 100%)',
+      shadow: '0 2px 12px rgba(245,166,35,0.6), 0 1px 0 #fff9d0 inset',
+    },
+    {
+      num: '2',
+      mobSize: 'text-2xl', lgSize: 'text-5xl',
+      gradient: 'linear-gradient(160deg, #f5f5f5 0%, #c8c8c8 35%, #8a8a8a 65%, #e0e0e0 100%)',
+      shadow: '0 2px 10px rgba(180,180,180,0.5), 0 1px 0 #fff inset',
+    },
+    {
+      num: '3',
+      mobSize: 'text-2xl', lgSize: 'text-5xl',
+      gradient: 'linear-gradient(160deg, #f0c080 0%, #cd7f32 35%, #7c4a00 65%, #e8a84a 100%)',
+      shadow: '0 2px 10px rgba(205,127,50,0.5), 0 1px 0 #f5d9a0 inset',
+    },
+  ];
+
   const podiumOrder = [
-    top3[1] ? { player: top3[1], rank: 1, podiumH: '56px', lgPodiumH: '80px', avatarMob: 'w-14 h-14', avatarLg: 'w-24 h-24', medal: '🥈' } : null,
-    top3[0] ? { player: top3[0], rank: 0, podiumH: '72px', lgPodiumH: '110px', avatarMob: 'w-16 h-16', avatarLg: 'w-32 h-32', medal: '🥇' } : null,
-    top3[2] ? { player: top3[2], rank: 2, podiumH: '40px', lgPodiumH: '60px', avatarMob: 'w-12 h-12', avatarLg: 'w-20 h-20', medal: '🥉' } : null,
+    top3[1] ? { player: top3[1], rank: 1, podiumH: '56px', lgPodiumH: '80px', avatarMob: 'w-14 h-14', avatarLg: 'w-24 h-24' } : null,
+    top3[0] ? { player: top3[0], rank: 0, podiumH: '72px', lgPodiumH: '110px', avatarMob: 'w-16 h-16', avatarLg: 'w-32 h-32' } : null,
+    top3[2] ? { player: top3[2], rank: 2, podiumH: '40px', lgPodiumH: '60px', avatarMob: 'w-12 h-12', avatarLg: 'w-20 h-20' } : null,
   ];
 
   return (
@@ -44,9 +65,26 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
         <div className="flex gap-3 items-end mb-2 max-w-lg mx-auto lg:max-w-2xl lg:mx-auto lg:gap-8">
           {podiumOrder.map((entry, i) => {
             if (!entry) return <div key={i} className="flex-1" />;
-            const { player, rank, podiumH, lgPodiumH, avatarMob, avatarLg, medal } = entry;
+            const { player, rank, podiumH, lgPodiumH, avatarMob, avatarLg } = entry;
             const flame = FLAME[rank];
+            const medal = MEDALS[rank];
             const isMe = player.id === currentPlayerId;
+
+            const MetalNum = ({ cls }: { cls: string }) => (
+              <span
+                className={`font-montserrat font-black ${cls} select-none`}
+                style={{
+                  background: medal.gradient,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  filter: `drop-shadow(${medal.shadow.split(',')[0]})`,
+                  lineHeight: 1,
+                }}
+              >
+                {medal.num}
+              </span>
+            );
 
             return (
               <div
@@ -56,12 +94,14 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                 style={{ animationDelay: `${i * 0.1}s`, cursor: isMe ? 'default' : 'pointer' }}
               >
                 {rank === 0 && <div className="text-lg lg:text-4xl mb-1">👑</div>}
+                {/* Mobile avatar */}
                 <div
                   className={`${avatarMob} lg:hidden rounded-full flex items-center justify-center text-white font-montserrat font-bold border-2 overflow-hidden ${flame.ring}`}
                   style={{ backgroundColor: getAvatarColor(player.id) }}
                 >
                   {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
                 </div>
+                {/* Desktop avatar */}
                 <div
                   className={`${avatarLg} hidden lg:flex rounded-full items-center justify-center text-white font-montserrat font-bold text-2xl border-2 overflow-hidden ${flame.ring}`}
                   style={{ backgroundColor: getAvatarColor(player.id) }}
@@ -76,18 +116,19 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                     {player.points.toLocaleString()}
                   </div>
                 </div>
+                {/* Mobile podium */}
                 <div
-                  className="w-full rounded-t-lg flex items-center justify-center py-2"
+                  className="w-full rounded-t-lg flex items-center justify-center py-2 lg:hidden"
                   style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: podiumH }}
                 >
-                  <span className="lg:hidden">{medal}</span>
+                  <MetalNum cls={medal.mobSize} />
                 </div>
-                {/* Desktop podium block — taller */}
+                {/* Desktop podium */}
                 <div
                   className="hidden lg:flex w-full rounded-t-xl items-center justify-center"
-                  style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: lgPodiumH, fontSize: '2rem' }}
+                  style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: lgPodiumH }}
                 >
-                  {medal}
+                  <MetalNum cls={medal.lgSize} />
                 </div>
               </div>
             );
