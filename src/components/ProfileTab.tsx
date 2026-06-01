@@ -117,19 +117,47 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
 
             <div className="flex-1 min-w-0">
               {editing ? (
-                <div className="flex items-center gap-2">
-                  <input autoFocus type="text" value={editName} onChange={e => setEditName(e.target.value)}
-                    className="flex-1 text-base lg:text-xl font-montserrat font-700 px-2 py-1 rounded outline-none"
-                    style={{ background: 'hsl(var(--muted))', border: `1px solid ${rankInfo.color}60`, color: 'hsl(var(--foreground))' }}
-                    onKeyDown={e => e.key === 'Enter' && handleSave()} />
-                  <button onClick={handleSave} className="text-green-400"><Icon name="Check" size={18} /></button>
-                  <button onClick={() => { setEditName(player.name); setEditing(false); }} className="text-muted-foreground"><Icon name="X" size={18} /></button>
+                <div className="flex flex-col gap-1.5 w-full">
+                  <div className="flex items-center gap-2">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={editName}
+                      onChange={e => setEditName(e.target.value.slice(0, 30))}
+                      placeholder="Введите имя..."
+                      className="flex-1 text-base lg:text-xl font-montserrat font-700 px-3 py-1.5 rounded-lg outline-none"
+                      style={{ background: 'hsl(var(--muted))', border: `1px solid ${rankInfo.color}80`, color: 'hsl(var(--foreground))' }}
+                      onKeyDown={e => e.key === 'Enter' && handleSave()}
+                    />
+                    <button
+                      onClick={handleSave}
+                      disabled={!editName.trim()}
+                      className="px-3 py-1.5 rounded-lg font-montserrat font-600 text-sm transition-opacity"
+                      style={{ background: '#4CAF50', color: '#fff', opacity: editName.trim() ? 1 : 0.4 }}
+                    >
+                      <Icon name="Check" size={16} />
+                    </button>
+                    <button
+                      onClick={() => { setEditName(player.name); setEditing(false); }}
+                      className="px-3 py-1.5 rounded-lg"
+                      style={{ background: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' }}
+                    >
+                      <Icon name="X" size={16} />
+                    </button>
+                  </div>
+                  <div className="text-xs text-muted-foreground pl-1">{editName.length}/30 символов</div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 group">
                   <span className="font-montserrat font-800 text-lg lg:text-2xl text-foreground truncate">{player.name}</span>
-                  <button onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground flex-shrink-0">
-                    <Icon name="Pen" size={14} />
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="flex items-center gap-1 px-2 py-1 rounded-md transition-all flex-shrink-0"
+                    style={{ background: 'rgba(245,166,35,0.1)', color: 'var(--gold)', border: '1px solid rgba(245,166,35,0.25)' }}
+                    title="Изменить имя"
+                  >
+                    <Icon name="Pen" size={12} />
+                    <span className="text-xs font-montserrat font-600" style={{ fontSize: '11px' }}>Изменить</span>
                   </button>
                 </div>
               )}
