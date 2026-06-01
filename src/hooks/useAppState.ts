@@ -306,36 +306,41 @@ export function useAppState() {
       }
     }
 
-    const updatedPlayers = players.map(p => {
-      const teamIdx = placements.findIndex(teamId => {
-        const team = game.teams.find(t => t.id === teamId);
-        return team?.playerIds.includes(p.id);
+    // Используем функциональный setPlayers чтобы избежать stale closure
+    setPlayers(prevPlayers => {
+      const updatedPlayers = prevPlayers.map(p => {
+        const teamIdx = placements.findIndex(teamId => {
+          const team = game.teams.find(t => t.id === teamId);
+          return team?.playerIds.includes(p.id);
+        });
+        if (teamIdx === -1) return p;
+
+        const delta = teamIdx === 0 ? (n - 1) * 100 : -teamIdx * 100;
+        const isWinner = teamIdx === 0;
+        const isLoser = teamIdx > 0;
+
+        return {
+          ...p,
+          points: Math.max(0, p.points + delta),
+          wins: p.wins + (isWinner ? 1 : 0),
+          losses: p.losses + (isLoser ? 1 : 0),
+          gamesPlayed: p.gamesPlayed + 1,
+        };
       });
-      if (teamIdx === -1) return p;
 
-      const delta = teamIdx === 0 ? (n - 1) * 100 : -teamIdx * 100;
-      const isWinner = teamIdx === 0;
-      const isLoser = teamIdx > 0;
+      // Синхронизируем изменённых игроков с сервером
+      const allGamePlayerIds = placements.flatMap(teamId =>
+        game.teams.find(t => t.id === teamId)?.playerIds ?? []
+      );
+      updatedPlayers.filter(p => allGamePlayerIds.includes(p.id)).forEach(p => {
+        fetch(API_PLAYERS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: p.id, updates: { points: p.points, wins: p.wins, losses: p.losses, gamesPlayed: p.gamesPlayed } }),
+        }).catch(() => {});
+      });
 
-      return {
-        ...p,
-        points: Math.max(0, p.points + delta),
-        wins: p.wins + (isWinner ? 1 : 0),
-        losses: p.losses + (isLoser ? 1 : 0),
-        gamesPlayed: p.gamesPlayed + 1,
-      };
-    });
-    setPlayers(updatedPlayers);
-
-    const allGamePlayerIds = placements.flatMap(teamId =>
-      game.teams.find(t => t.id === teamId)?.playerIds ?? []
-    );
-    updatedPlayers.filter(p => allGamePlayerIds.includes(p.id)).forEach(p => {
-      fetch(API_PLAYERS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: p.id, updates: { points: p.points, wins: p.wins, losses: p.losses, gamesPlayed: p.gamesPlayed } }),
-      }).catch(() => {});
+      return updatedPlayers;
     });
   }
 

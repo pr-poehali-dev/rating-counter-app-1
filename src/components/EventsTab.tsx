@@ -223,7 +223,7 @@ export default function EventsTab({
         )}
 
         {finishedGames.length > 0 && (
-          <div className="hidden lg:block mt-6 lg:mt-8">
+          <div className="mt-6 lg:mt-8">
             <div className="text-xs lg:text-sm font-montserrat font-700 uppercase tracking-widest text-muted-foreground mb-3 lg:mb-4">
               Завершённые
             </div>
