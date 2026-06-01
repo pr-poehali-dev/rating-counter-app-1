@@ -64,13 +64,17 @@ export function getRankLabel(rank: Rank): string {
 export function getRankEmoji(rank: Rank): string {
   const emojis: Record<Rank, string> = {
     rookie: '🎯',
-    wolf: '🐺',
+    wolf: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/4db688e7-c3fb-469f-af8c-82790cf63902.png',
     shark: '🦈',
     dragon: '🐉',
     skull: '💀',
     queen: '👸',
   };
   return emojis[rank];
+}
+
+export function isRankImage(val: string): boolean {
+  return val.startsWith('http');
 }
 
 export function getRankThreshold(rank: Rank): number {

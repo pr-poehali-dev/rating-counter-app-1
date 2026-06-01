@@ -1,6 +1,11 @@
 import type { CSSProperties } from 'react';
-import { Player, getRank, getRankEmoji, getRankLabel, Rank } from '@/data/store';
+import { Player, getRank, getRankEmoji, getRankLabel, isRankImage, Rank } from '@/data/store';
 import Icon from '@/components/ui/icon';
+
+function RankIcon({ val, size = 16 }: { val: string; size?: number }) {
+  if (isRankImage(val)) return <img src={val} alt="rank" style={{ width: size, height: size, objectFit: 'contain', display: 'inline-block' }} />;
+  return <span>{val}</span>;
+}
 
 interface LeaderboardTabProps {
   players: Player[];
@@ -220,7 +225,7 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <span>{getRankEmoji(rank)}</span>
+                    <RankIcon val={getRankEmoji(rank)} size={14} />
                     <span>{getRankLabel(rank)}</span>
                     <span className="mx-1">·</span>
                     <span className="text-green-400">{winRate}% побед</span>

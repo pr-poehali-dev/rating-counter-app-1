@@ -1,5 +1,10 @@
-import { Player, Game, getRank, getNextRankThreshold } from '@/data/store';
+import { Player, Game, getRank, getNextRankThreshold, isRankImage } from '@/data/store';
 import Icon from '@/components/ui/icon';
+
+function RankIcon({ val, size = 20 }: { val: string; size?: number }) {
+  if (isRankImage(val)) return <img src={val} alt="rank" style={{ width: size, height: size, objectFit: 'contain', display: 'inline-block' }} />;
+  return <span className="text-lg lg:text-xl">{val}</span>;
+}
 
 const TOP3_FLAME = [
   { ring: 'flame-ring-1', glow: '#9c27b0', heroBg: 'linear-gradient(180deg, rgba(74,20,140,0.35) 0%, rgba(0,0,0,0) 100%)', badge: '#ce93d8', badgeBg: 'rgba(156,39,176,0.15)', label: '🔥 1-е место' },
@@ -18,7 +23,7 @@ function getInitials(name: string): string {
 
 const RANKS = [
   { key: 'rookie', label: 'Новобранец', emoji: '🎯', threshold: 0, color: '#9CA3AF' },
-  { key: 'wolf',   label: 'Волк',          emoji: '🐺', threshold: 5000,  color: '#6B7280' },
+  { key: 'wolf',   label: 'Волк',          emoji: 'https://cdn.poehali.dev/projects/54777fdb-66a9-4dc5-8e35-68f29c84a0ae/bucket/4db688e7-c3fb-469f-af8c-82790cf63902.png', threshold: 5000,  color: '#6B7280' },
   { key: 'shark',  label: 'Акула',         emoji: '🦈', threshold: 10000, color: '#1E88E5' },
   { key: 'dragon', label: 'Дракон',        emoji: '🐉', threshold: 15000, color: '#E53935' },
   { key: 'skull',  label: 'Владыка',       emoji: '💀', threshold: 20000, color: '#F5A623' },
@@ -109,7 +114,7 @@ export default function PlayerProfileView({ player, allPlayers, games, onClose }
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-lg lg:text-xl">{rankInfo.emoji}</span>
+                  <RankIcon val={rankInfo.emoji} size={24} />
                   <span className="font-montserrat font-600 text-sm lg:text-base" style={{ color: rankInfo.color }}>{rankInfo.label}</span>
                 </div>
                 <div className="flex items-center gap-1 mt-0.5 text-xs lg:text-sm text-muted-foreground">
@@ -186,7 +191,7 @@ export default function PlayerProfileView({ player, allPlayers, games, onClose }
                     border: isCurrentRank ? `1px solid ${r.color}40` : '1px solid hsl(var(--border))',
                     opacity: isAchieved ? 1 : 0.45,
                   }}>
-                  <span className="text-xl lg:text-2xl w-8 text-center">{r.emoji}</span>
+                  <div className="w-8 flex items-center justify-center"><RankIcon val={r.emoji} size={28} /></div>
                   <div className="flex-1">
                     <div className="font-montserrat font-600 text-sm lg:text-base" style={{ color: isCurrentRank ? r.color : 'hsl(var(--foreground))' }}>{r.label}</div>
                     <div className="text-xs text-muted-foreground">от {r.threshold.toLocaleString()} очков</div>
