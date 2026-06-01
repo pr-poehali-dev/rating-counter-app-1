@@ -151,20 +151,8 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                     {player.points.toLocaleString()}
                   </div>
                 </div>
-                {/* Mobile podium */}
-                <div
-                  className="w-full rounded-t-lg flex items-center justify-center py-2 lg:hidden"
-                  style={{ ...podiumStyle, height: podiumH }}
-                >
-                  <MetalNum cls={medal.mobSize} />
-                </div>
-                {/* Desktop podium */}
-                <div
-                  className="hidden lg:flex w-full rounded-t-xl items-center justify-center"
-                  style={{ ...podiumStyle, height: lgPodiumH }}
-                >
-                  <MetalNum cls={medal.lgSize} />
-                </div>
+                <MetalNum cls={`lg:hidden ${medal.mobSize}`} />
+                <div className="hidden lg:block"><MetalNum cls={medal.lgSize} /></div>
               </div>
             );
           })}
