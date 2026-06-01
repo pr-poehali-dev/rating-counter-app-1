@@ -204,7 +204,7 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                 </div>
 
                 <div
-                  className={`w-9 h-9 lg:w-11 lg:h-11 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xs flex-shrink-0 overflow-hidden${flame ? ` ${flame.ring}` : ''}`}
+                  className={`w-11 h-11 lg:w-13 lg:h-13 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xs flex-shrink-0 overflow-hidden${flame ? ` ${flame.ring}` : ''}`}
                   style={{ backgroundColor: getAvatarColor(player.id) }}
                 >
                   {player.avatar

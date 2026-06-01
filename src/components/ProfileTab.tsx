@@ -121,7 +121,7 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
           <div className="flex items-center gap-4 lg:gap-5">
             <div className="relative flex-shrink-0">
               <div
-                className={`w-20 h-20 lg:w-28 lg:h-28 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xl lg:text-3xl overflow-hidden border-2${flame ? ` ${flame.ring}` : ''}`}
+                className={`w-24 h-24 lg:w-32 lg:h-32 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xl lg:text-3xl overflow-hidden border-2${flame ? ` ${flame.ring}` : ''}`}
                 style={{ backgroundColor: getAvatarColor(player.id), borderColor: flame ? flame.badge : rankInfo.color, boxShadow: flame ? undefined : `0 0 20px ${rankInfo.color}50` }}
               >
                 {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" alt="" /> : getInitials(player.name)}

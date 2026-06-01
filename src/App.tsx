@@ -509,7 +509,7 @@ export default function App() {
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-5xl xl:max-w-6xl mx-auto">
             {activeTab === 'leaderboard' && <LeaderboardTab players={players} currentPlayerId={currentPlayerId!} onPlayerClick={handleViewPlayer} />}
-            {activeTab === 'events' && <EventsTab games={games} players={players} currentPlayer={currentPlayer} isAdmin={isAdmin}
+            {activeTab === 'events' && <EventsTab games={games.filter(g => g.status !== 'archived')} players={players} currentPlayer={currentPlayer} isAdmin={isAdmin}
               onJoinGame={joinGame} onLeaveGame={leaveGame} onCreateGame={createGame}
               onAddPlayerToGame={addPlayerToGame} onRemovePlayerFromGame={removePlayerFromGame}
               onCreateTeam={createTeam} onAssignPlayerToTeam={assignPlayerToTeam}
