@@ -23,6 +23,21 @@ function saveLocal(key: string, v: unknown) {
   try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ }
 }
 
+// Кеш аватаров: { [playerId]: base64 } — сохраняется в localStorage
+function loadAvatarCache(): Record<string, string> {
+  return loadLocal<Record<string, string>>('sb_avatar_cache', {});
+}
+function saveAvatarToCache(playerId: string, avatar: string) {
+  if (!avatar) return;
+  const cache = loadAvatarCache();
+  cache[playerId] = avatar;
+  saveLocal('sb_avatar_cache', cache);
+}
+function mergeAvatars(players: Player[]): Player[] {
+  const cache = loadAvatarCache();
+  return players.map(p => ({ ...p, avatar: p.avatar || cache[p.id] || '' }));
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'events' | 'profile'>('leaderboard');
   // players — загружаются с сервера, дополняются локально для игр
@@ -69,15 +84,19 @@ export default function App() {
         } catch { /* игнорируем */ }
       }
 
+      // Если получили свежий аватар текущего игрока — сохраняем в кеш
+      if (savedPlayerId && myAvatar) {
+        saveAvatarToCache(savedPlayerId, myAvatar);
+      }
+
       const serverPlayers: Player[] = (data.players || []).map((p: Player) => ({
         ...p,
         password: '',
-        // Подставляем аватар для текущего игрока сразу при загрузке
-        avatar: savedPlayerId && p.id === savedPlayerId ? (myAvatar || p.avatar || '') : (p.avatar || ''),
       }));
 
       if (serverPlayers.length > 0) {
-        setPlayers(serverPlayers);
+        // mergeAvatars восстанавливает аватары из localStorage-кеша для всех игроков
+        setPlayers(mergeAvatars(serverPlayers));
       }
       setPlayersLoaded(true);
 
@@ -120,18 +139,19 @@ export default function App() {
 
   useEffect(() => { saveLocal('sb_current_player', currentPlayerId); }, [currentPlayerId]);
 
-  // После логина — подгружаем аватар (при первичной загрузке уже делается в fetchAll)
+  // После логина — подгружаем аватар если не попал в кеш
   useEffect(() => {
     if (!currentPlayerId) return;
-    // Проверяем, есть ли аватар уже в state
     const alreadyHasAvatar = players.find(p => p.id === currentPlayerId)?.avatar;
     if (alreadyHasAvatar) return;
     fetch(`${API_PLAYERS}?id=${currentPlayerId}`)
       .then(r => r.json())
       .then(raw => {
         const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        if (data.player?.avatar) {
-          setPlayers(prev => prev.map(p => p.id === currentPlayerId ? { ...p, avatar: data.player.avatar } : p));
+        const avatar = data.player?.avatar;
+        if (avatar) {
+          saveAvatarToCache(currentPlayerId, avatar);
+          setPlayers(prev => prev.map(p => p.id === currentPlayerId ? { ...p, avatar } : p));
         }
       })
       .catch(() => {});
@@ -176,16 +196,21 @@ export default function App() {
   function handleViewPlayer(playerId: string) {
     setViewingPlayerId(playerId);
     setActiveTab('profile');
-    // Подгружаем аватар просматриваемого игрока
-    fetch(`${API_PLAYERS}?id=${playerId}`)
-      .then(r => r.json())
-      .then(raw => {
-        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        if (data.player?.avatar) {
-          setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, avatar: data.player.avatar } : p));
-        }
-      })
-      .catch(() => {});
+    // Подгружаем аватар просматриваемого игрока (если нет в кеше)
+    const cachedAvatar = loadAvatarCache()[playerId];
+    if (!cachedAvatar) {
+      fetch(`${API_PLAYERS}?id=${playerId}`)
+        .then(r => r.json())
+        .then(raw => {
+          const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          const avatar = data.player?.avatar;
+          if (avatar) {
+            saveAvatarToCache(playerId, avatar);
+            setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, avatar } : p));
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   function handleCloseViewPlayer() {
@@ -194,6 +219,8 @@ export default function App() {
 
   // --- Player ---
   function updatePlayer(id: string, updates: Partial<Player>) {
+    // Если меняется аватар — сохраняем в кеш сразу
+    if (updates.avatar) saveAvatarToCache(id, updates.avatar);
     setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     // Синхронизируем с сервером
     fetch(API_PLAYERS, {
