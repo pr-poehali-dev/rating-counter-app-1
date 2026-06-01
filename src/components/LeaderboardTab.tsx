@@ -156,33 +156,14 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                   className="w-full rounded-t-lg flex items-center justify-center py-2 lg:hidden"
                   style={{ ...podiumStyle, height: podiumH }}
                 >
-                  <div style={{
-                    background: '#0a0a0a',
-                    border: `2px solid ${RANK_COLORS[playerRank].primary}`,
-                    boxShadow: `0 0 8px ${RANK_COLORS[playerRank].primary}, 0 0 20px ${RANK_COLORS[playerRank].glow}, inset 0 0 6px ${RANK_COLORS[playerRank].glow}`,
-                    borderRadius: '4px',
-                    width: '40px', height: '40px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <MetalNum cls={medal.mobSize} />
-                  </div>
+                  <MetalNum cls={medal.mobSize} />
                 </div>
                 {/* Desktop podium */}
                 <div
                   className="hidden lg:flex w-full rounded-t-xl items-center justify-center"
                   style={{ ...podiumStyle, height: lgPodiumH }}
                 >
-                  <div style={{
-                    background: '#0a0a0a',
-                    border: `3px solid ${RANK_COLORS[playerRank].primary}`,
-                    boxShadow: `0 0 14px ${RANK_COLORS[playerRank].primary}, 0 0 40px ${RANK_COLORS[playerRank].glow}, inset 0 0 12px ${RANK_COLORS[playerRank].glow}`,
-                    borderRadius: '6px',
-                    width: rank === 0 ? '90px' : '72px',
-                    height: rank === 0 ? '90px' : '72px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <MetalNum cls={medal.lgSize} />
-                  </div>
+                  <MetalNum cls={medal.lgSize} />
                 </div>
               </div>
             );
