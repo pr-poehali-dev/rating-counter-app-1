@@ -170,16 +170,16 @@ export default function EventsTab({
   }
 
   return (
-    <div className="pb-6 animate-fade-in">
-      <div className="px-4 pt-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-montserrat text-xs font-700 uppercase tracking-widest text-muted-foreground">
+    <div className="pb-6 lg:pb-8 animate-fade-in">
+      <div className="px-4 lg:px-8 pt-4 lg:pt-8">
+        <div className="flex items-center justify-between mb-4 lg:mb-6">
+          <h2 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground">
             Активные события
           </h2>
           {isAdmin && (
             <button
               onClick={() => setShowCreateGame(!showCreateGame)}
-              className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-md font-600"
+              className="flex items-center gap-1.5 text-xs lg:text-sm px-3 lg:px-4 py-2 rounded-md font-600"
               style={{ background: 'var(--gold)', color: 'hsl(var(--background))' }}
             >
               <Icon name="Plus" size={12} /> Новая игра
@@ -188,7 +188,7 @@ export default function EventsTab({
         </div>
 
         {showCreateGame && isAdmin && (
-          <div className="mb-4 rounded-lg p-4 space-y-3 animate-scale-in" style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}>
+          <div className="mb-4 lg:mb-6 rounded-lg p-4 space-y-3 animate-scale-in max-w-md" style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}>
             <div className="text-sm font-montserrat font-600 text-foreground">Создать игру</div>
             <input
               type="text"
@@ -200,44 +200,33 @@ export default function EventsTab({
               onKeyDown={e => e.key === 'Enter' && handleCreateGame()}
             />
             <div className="flex gap-2">
-              <button
-                onClick={handleCreateGame}
-                className="flex-1 text-sm py-2 rounded font-600"
-                style={{ background: 'var(--gold)', color: 'hsl(var(--background))' }}
-              >
-                Создать
-              </button>
-              <button
-                onClick={() => setShowCreateGame(false)}
+              <button onClick={handleCreateGame} className="flex-1 text-sm py-2 rounded font-600"
+                style={{ background: 'var(--gold)', color: 'hsl(var(--background))' }}>Создать</button>
+              <button onClick={() => setShowCreateGame(false)}
                 className="px-4 text-sm py-2 rounded font-600 text-muted-foreground"
-                style={{ background: 'hsl(var(--muted))', border: '1px solid hsl(var(--border))' }}
-              >
-                Отмена
-              </button>
+                style={{ background: 'hsl(var(--muted))', border: '1px solid hsl(var(--border))' }}>Отмена</button>
             </div>
           </div>
         )}
 
         {activeGames.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-4xl mb-3">🎯</div>
-            <div className="text-sm text-muted-foreground">Нет активных игр</div>
-            {isAdmin && (
-              <div className="text-xs text-muted-foreground mt-1">Создайте новую игру выше</div>
-            )}
+          <div className="text-center py-12 lg:py-20">
+            <div className="text-4xl lg:text-6xl mb-3">🎯</div>
+            <div className="text-sm lg:text-base text-muted-foreground">Нет активных игр</div>
+            {isAdmin && <div className="text-xs text-muted-foreground mt-1">Создайте новую игру выше</div>}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-3 lg:gap-4">
             {activeGames.map(renderGameCard)}
           </div>
         )}
 
         {finishedGames.length > 0 && (
-          <div className="mt-6">
-            <div className="text-xs font-montserrat font-700 uppercase tracking-widest text-muted-foreground mb-3">
+          <div className="mt-6 lg:mt-8">
+            <div className="text-xs lg:text-sm font-montserrat font-700 uppercase tracking-widest text-muted-foreground mb-3 lg:mb-4">
               Завершённые
             </div>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2 lg:gap-3">
               {finishedGames.map(renderGameCard)}
             </div>
           </div>

@@ -16,7 +16,6 @@ function getAvatarColor(id: string): string {
   return colors[parseInt(id) % colors.length];
 }
 
-// 1-е место: фиолетовый огонь, 2-е: золотой, 3-е: красный
 const FLAME = [
   { ring: 'flame-ring-1', border: '#ce93d8', glow: 'rgba(156,39,176,0.5)', podiumBg: 'rgba(74,20,140,0.25)', podiumBorder: 'rgba(156,39,176,0.4)', pointColor: '#ce93d8' },
   { ring: 'flame-ring-2', border: '#ffe082', glow: 'rgba(245,166,35,0.5)', podiumBg: 'rgba(230,115,0,0.15)', podiumBorder: 'rgba(245,166,35,0.35)', pointColor: 'var(--gold)' },
@@ -27,40 +26,37 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
   const sorted = [...players].sort((a, b) => b.points - a.points);
   const top3 = sorted.slice(0, 3);
 
-  // Порядок отображения подиума: 2-й, 1-й, 3-й
   const podiumOrder = [
-    top3[1] ? { player: top3[1], rank: 1, height: '48px', size: 'w-13 h-13', textSize: 'text-sm', medal: '🥈' } : null,
-    top3[0] ? { player: top3[0], rank: 0, height: '64px', size: 'w-16 h-16', textSize: 'text-base', medal: '🥇' } : null,
-    top3[2] ? { player: top3[2], rank: 2, height: '36px', size: 'w-12 h-12', textSize: 'text-sm', medal: '🥉' } : null,
+    top3[1] ? { player: top3[1], rank: 1, podiumH: '56px', lgPodiumH: '72px', avatarCls: 'w-14 h-14 lg:w-16 lg:h-16', medal: '🥈' } : null,
+    top3[0] ? { player: top3[0], rank: 0, podiumH: '72px', lgPodiumH: '96px', avatarCls: 'w-16 h-16 lg:w-20 lg:h-20', medal: '🥇' } : null,
+    top3[2] ? { player: top3[2], rank: 2, podiumH: '40px', lgPodiumH: '52px', avatarCls: 'w-12 h-12 lg:w-14 lg:h-14', medal: '🥉' } : null,
   ];
 
   return (
-    <div className="pb-6 animate-fade-in">
+    <div className="pb-6 lg:pb-8 animate-fade-in">
       {/* Top 3 podium */}
-      <div className="px-4 pt-4 mb-4">
-        <h2 className="font-montserrat text-xs font-700 uppercase tracking-widest text-muted-foreground mb-4">
+      <div className="px-4 lg:px-8 pt-4 lg:pt-8 mb-4 lg:mb-8">
+        <h2 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground mb-4 lg:mb-6">
           Топ игроки
         </h2>
 
-        <div className="flex gap-3 items-end mb-2">
+        <div className="flex gap-3 lg:gap-6 items-end mb-2 max-w-lg lg:max-w-xl mx-auto lg:mx-0">
           {podiumOrder.map((entry, i) => {
             if (!entry) return <div key={i} className="flex-1" />;
-            const { player, rank, height, medal } = entry;
+            const { player, rank, podiumH, lgPodiumH, avatarCls, medal } = entry;
             const flame = FLAME[rank];
             const isMe = player.id === currentPlayerId;
-            const avatarSize = rank === 0 ? 'w-16 h-16 text-base' : 'w-12 h-12 text-sm';
-            const crownEl = rank === 0 ? <div className="text-lg mb-1">👑</div> : null;
 
             return (
               <div
                 key={player.id}
                 onClick={() => !isMe && onPlayerClick(player.id)}
-                className="flex-1 flex flex-col items-center gap-1.5 animate-slide-up"
+                className="flex-1 flex flex-col items-center gap-1.5 lg:gap-2 animate-slide-up"
                 style={{ animationDelay: `${i * 0.1}s`, cursor: isMe ? 'default' : 'pointer' }}
               >
-                {crownEl}
+                {rank === 0 && <div className="text-lg lg:text-2xl mb-1">👑</div>}
                 <div
-                  className={`${avatarSize} rounded-full flex items-center justify-center text-white font-montserrat font-bold border-2 overflow-hidden ${flame.ring}`}
+                  className={`${avatarCls} rounded-full flex items-center justify-center text-white font-montserrat font-bold border-2 overflow-hidden ${flame.ring}`}
                   style={{ backgroundColor: getAvatarColor(player.id) }}
                 >
                   {player.avatar
@@ -68,18 +64,18 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                     : getInitials(player.name)}
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-montserrat font-700 text-foreground leading-tight">
+                  <div className="text-xs lg:text-sm font-montserrat font-700 text-foreground leading-tight">
                     {player.name.split(' ')[0]}
                   </div>
-                  <div className="text-xs font-600" style={{ color: flame.pointColor }}>
+                  <div className="text-xs lg:text-sm font-600" style={{ color: flame.pointColor }}>
                     {player.points.toLocaleString()}
                   </div>
                 </div>
                 <div
                   className="w-full rounded-t-md flex items-center justify-center py-2"
-                  style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height }}
+                  style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: podiumH }}
                 >
-                  <span className={rank === 0 ? 'text-xl' : rank === 1 ? 'text-lg' : 'text-base'}>{medal}</span>
+                  <span className={rank === 0 ? 'text-xl lg:text-2xl' : 'text-base lg:text-xl'}>{medal}</span>
                 </div>
               </div>
             );
@@ -88,11 +84,11 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
       </div>
 
       {/* Full list */}
-      <div className="px-4">
-        <h2 className="font-montserrat text-xs font-700 uppercase tracking-widest text-muted-foreground mb-3">
+      <div className="px-4 lg:px-8">
+        <h2 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground mb-3 lg:mb-4">
           Все игроки
         </h2>
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-3">
           {sorted.map((player, idx) => {
             const rank = getRank(player.points);
             const isMe = player.id === currentPlayerId;
@@ -105,7 +101,7 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
               <div
                 key={player.id}
                 onClick={() => !isMe && onPlayerClick(player.id)}
-                className="flex items-center gap-3 p-3 rounded-lg hover-scale"
+                className="flex items-center gap-3 p-3 lg:p-4 rounded-lg hover-scale"
                 style={{
                   background: flame
                     ? `linear-gradient(90deg, ${flame.glow.replace('0.5', '0.08')}, rgba(10,10,14,0.7))`
@@ -121,15 +117,13 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                   cursor: isMe ? 'default' : 'pointer',
                 }}
               >
-                {/* Position */}
-                <div className="w-6 text-center font-montserrat font-700 text-sm"
+                <div className="w-7 text-center font-montserrat font-700 text-sm"
                   style={{ color: flame ? flame.pointColor : 'hsl(var(--muted-foreground))' }}>
                   {idx + 1}
                 </div>
 
-                {/* Avatar */}
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xs flex-shrink-0 overflow-hidden${flame ? ` ${flame.ring}` : ''}`}
+                  className={`w-9 h-9 lg:w-11 lg:h-11 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xs flex-shrink-0 overflow-hidden${flame ? ` ${flame.ring}` : ''}`}
                   style={{ backgroundColor: getAvatarColor(player.id) }}
                 >
                   {player.avatar
@@ -137,10 +131,9 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                     : getInitials(player.name)}
                 </div>
 
-                {/* Name & rank */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="font-montserrat font-600 text-sm text-foreground truncate">{player.name}</span>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="font-montserrat font-600 text-sm lg:text-base text-foreground truncate">{player.name}</span>
                     {isMe && (
                       <span className="text-xs px-1.5 py-0.5 rounded-sm font-600"
                         style={{ background: 'rgba(245,166,35,0.15)', color: 'var(--gold)', fontSize: '10px' }}>ВЫ</span>
@@ -158,9 +151,8 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                   </div>
                 </div>
 
-                {/* Points */}
                 <div className="text-right flex-shrink-0">
-                  <div className="font-montserrat font-700 text-sm"
+                  <div className="font-montserrat font-700 text-sm lg:text-base"
                     style={{ color: flame ? flame.pointColor : 'hsl(var(--foreground))' }}>
                     {player.points.toLocaleString()}
                   </div>
