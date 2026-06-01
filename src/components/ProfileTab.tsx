@@ -42,6 +42,7 @@ const RANKS = [
 export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, onLogout }: ProfileTabProps) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(player.name);
+  const [activeTab, setActiveTab] = useState<'stats' | 'history'>('stats');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const rank = getRank(player.points);
@@ -64,6 +65,24 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
       .filter(task => task.completedBy.includes(player.id))
       .map(task => ({ taskName: task.name, taskPoints: task.points, gameName: game.title }))
   );
+
+  // История игр игрока
+  const myGames = games
+    .filter(g => g.status === 'finished' && g.teams.some(t => t.playerIds.includes(player.id)))
+    .sort((a, b) => b.id.localeCompare(a.id));
+
+  function getMyPlacement(game: Game): number {
+    const myTeam = game.teams.find(t => t.playerIds.includes(player.id));
+    if (!myTeam) return -1;
+    return game.placements.indexOf(myTeam.id);
+  }
+
+  function getMyDelta(game: Game): number {
+    const placement = getMyPlacement(game);
+    if (placement === -1) return 0;
+    const n = game.placements.length;
+    return placement === 0 ? (n - 1) * 100 : -placement * 100;
+  }
 
   function handleSave() {
     if (editName.trim()) {
@@ -203,8 +222,30 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
         </div>
       </div>
 
+      {/* Tab switcher */}
+      <div className="px-4 lg:px-8 pt-2 pb-4">
+        <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'hsl(var(--muted))' }}>
+          {([
+            { key: 'stats', label: 'Статистика', icon: 'BarChart2' },
+            { key: 'history', label: 'История игр', icon: 'Gamepad2' },
+          ] as const).map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-montserrat font-600 transition-all"
+              style={activeTab === tab.key
+                ? { background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }
+                : { color: 'hsl(var(--muted-foreground))' }}
+            >
+              <Icon name={tab.icon} size={14} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Stats */}
-      <div className="px-4 lg:px-8 space-y-4 lg:space-y-6">
+      {activeTab === 'stats' && <div className="px-4 lg:px-8 space-y-4 lg:space-y-6">
         <h3 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground">
           Статистика
         </h3>
@@ -249,7 +290,7 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
                     border: isCurrentRank ? `1px solid ${r.color}40` : '1px solid hsl(var(--border))',
                     opacity: isAchieved ? 1 : 0.45,
                   }}>
-                  <div className="w-10 flex items-center justify-center"><RankIcon val={r.emoji} size={40} /></div>
+                  <div className="w-14 flex items-center justify-center"><RankIcon val={r.emoji} size={56} /></div>
                   <div className="flex-1">
                     <div className="font-montserrat font-600 text-sm lg:text-base" style={{ color: isCurrentRank ? r.color : 'hsl(var(--foreground))' }}>{r.label}</div>
                     <div className="text-xs text-muted-foreground">от {r.threshold.toLocaleString()} очков</div>
@@ -300,7 +341,87 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
             Выйти из аккаунта
           </button>
         </div>
-      </div>
+      </div>}
+
+      {/* History tab */}
+      {activeTab === 'history' && (
+        <div className="px-4 lg:px-8 space-y-3 lg:space-y-4 pb-6">
+          {myGames.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+              <Icon name="Gamepad2" size={40} className="text-muted-foreground opacity-30" />
+              <div className="text-muted-foreground text-sm">Ещё не было сыграно ни одной игры</div>
+            </div>
+          ) : (
+            myGames.map(game => {
+              const placement = getMyPlacement(game);
+              const delta = getMyDelta(game);
+              const isWin = placement === 0;
+              const totalTeams = game.placements.length;
+              const myTeam = game.teams.find(t => t.playerIds.includes(player.id));
+              const teammates = myTeam?.playerIds
+                .filter(id => id !== player.id)
+                .map(id => allPlayers.find(p => p.id === id)?.name)
+                .filter(Boolean) ?? [];
+
+              return (
+                <div key={game.id} className="rounded-xl overflow-hidden"
+                  style={{
+                    border: `1px solid ${isWin ? 'rgba(76,175,80,0.35)' : 'rgba(229,57,53,0.25)'}`,
+                    background: isWin
+                      ? 'linear-gradient(90deg, rgba(76,175,80,0.08), hsl(var(--card)))'
+                      : 'linear-gradient(90deg, rgba(229,57,53,0.07), hsl(var(--card)))',
+                  }}>
+                  <div className="flex items-center gap-3 p-3 lg:p-4">
+                    {/* Result icon */}
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center flex-shrink-0 font-montserrat font-800 text-base lg:text-lg"
+                      style={{
+                        background: isWin ? 'rgba(76,175,80,0.15)' : 'rgba(229,57,53,0.12)',
+                        color: isWin ? '#4CAF50' : '#E53935',
+                        border: `1px solid ${isWin ? 'rgba(76,175,80,0.4)' : 'rgba(229,57,53,0.3)'}`,
+                      }}>
+                      {isWin ? '🏆' : `#${placement + 1}`}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-montserrat font-700 text-sm lg:text-base text-foreground truncate">{game.title}</div>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span className="text-xs font-600" style={{ color: isWin ? '#4CAF50' : '#E53935' }}>
+                          {isWin ? 'Победа' : `${placement + 1} из ${totalTeams}`}
+                        </span>
+                        {teammates.length > 0 && (
+                          <>
+                            <span className="text-muted-foreground text-xs">·</span>
+                            <span className="text-xs text-muted-foreground truncate">
+                              с {teammates.slice(0, 2).join(', ')}{teammates.length > 2 ? ` +${teammates.length - 2}` : ''}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Points delta */}
+                    <div className="flex-shrink-0 font-montserrat font-700 text-sm lg:text-base"
+                      style={{ color: delta >= 0 ? '#4CAF50' : '#E53935' }}>
+                      {delta >= 0 ? '+' : ''}{delta}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+
+          {/* Logout in history tab too */}
+          <div className="pt-2 lg:pt-4">
+            <button onClick={onLogout}
+              className="w-full lg:w-auto lg:px-8 flex items-center justify-center gap-2 py-3 rounded-lg font-montserrat font-600 text-sm lg:text-base transition-colors"
+              style={{ background: 'rgba(229,57,53,0.08)', color: '#E53935', border: '1px solid rgba(229,57,53,0.2)' }}>
+              <Icon name="LogOut" size={15} />
+              Выйти из аккаунта
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
