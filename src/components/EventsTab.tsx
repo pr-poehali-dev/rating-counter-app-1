@@ -217,7 +217,7 @@ export default function EventsTab({
             {isAdmin && <div className="text-xs text-muted-foreground mt-1">Создайте новую игру выше</div>}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-3 lg:gap-4">
+          <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-3 lg:gap-4">
             {activeGames.map(renderGameCard)}
           </div>
         )}
