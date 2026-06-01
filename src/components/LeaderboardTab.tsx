@@ -1,4 +1,5 @@
-import { Player, getRank, getRankEmoji, getRankLabel } from '@/data/store';
+import type { CSSProperties } from 'react';
+import { Player, getRank, getRankEmoji, getRankLabel, Rank } from '@/data/store';
 import Icon from '@/components/ui/icon';
 
 interface LeaderboardTabProps {
@@ -14,6 +15,36 @@ function getInitials(name: string): string {
 function getAvatarColor(id: string): string {
   const colors = ['#E53935', '#1E88E5', '#43A047', '#F5A623', '#8E24AA', '#00ACC1', '#FF6F00'];
   return colors[parseInt(id) % colors.length];
+}
+
+const RANK_COLORS: Record<Rank, { primary: string; dark: string; mid: string; glow: string }> = {
+  rookie: { primary: '#9ca3af', dark: '#374151', mid: '#6b7280', glow: 'rgba(156,163,175,0.3)' },
+  wolf:   { primary: '#7c8fa6', dark: '#1e3a5f', mid: '#4a6fa5', glow: 'rgba(74,111,165,0.35)' },
+  shark:  { primary: '#1e88e5', dark: '#0d2d6b', mid: '#1565c0', glow: 'rgba(30,136,229,0.4)' },
+  dragon: { primary: '#e53935', dark: '#4a0000', mid: '#b71c1c', glow: 'rgba(229,57,53,0.45)' },
+  skull:  { primary: '#f5a623', dark: '#3d2000', mid: '#c97b00', glow: 'rgba(245,166,35,0.5)' },
+  queen:  { primary: '#9c27b0', dark: '#1a0030', mid: '#6a0080', glow: 'rgba(156,39,176,0.5)' },
+};
+
+function getPodiumStyle(rank: Rank, place: 0 | 1 | 2): CSSProperties {
+  const c = RANK_COLORS[rank];
+  // Тактический диагональный рисунок — полоски + градиент
+  const stripeAngle = place === 0 ? '135deg' : place === 1 ? '120deg' : '150deg';
+  return {
+    background: `
+      repeating-linear-gradient(
+        ${stripeAngle},
+        transparent 0px,
+        transparent 6px,
+        ${c.primary}18 6px,
+        ${c.primary}18 7px
+      ),
+      linear-gradient(180deg, ${c.dark} 0%, ${c.mid}44 50%, ${c.dark}cc 100%)
+    `,
+    border: `1px solid ${c.primary}55`,
+    borderBottom: 'none',
+    boxShadow: `0 -4px 20px ${c.glow}, inset 0 1px 0 ${c.primary}40`,
+  };
 }
 
 const FLAME = [
@@ -69,6 +100,8 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
             const flame = FLAME[rank];
             const medal = MEDALS[rank];
             const isMe = player.id === currentPlayerId;
+            const playerRank = getRank(player.points);
+            const podiumStyle = getPodiumStyle(playerRank, rank as 0 | 1 | 2);
 
             const MetalNum = ({ cls }: { cls: string }) => (
               <span
@@ -121,14 +154,14 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                 {/* Mobile podium */}
                 <div
                   className="w-full rounded-t-lg flex items-center justify-center py-2 lg:hidden"
-                  style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: podiumH }}
+                  style={{ ...podiumStyle, height: podiumH }}
                 >
                   <MetalNum cls={medal.mobSize} />
                 </div>
                 {/* Desktop podium */}
                 <div
                   className="hidden lg:flex w-full rounded-t-xl items-center justify-center"
-                  style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: lgPodiumH }}
+                  style={{ ...podiumStyle, height: lgPodiumH }}
                 >
                   <MetalNum cls={medal.lgSize} />
                 </div>
