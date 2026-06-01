@@ -40,19 +40,23 @@ export default function App() {
 
   // Один запрос — загружает и игры, и игроков
   useEffect(() => {
-    fetchAll();
-    const interval = setInterval(fetchAll, 600000); // раз в 10 минут
+    fetchAll(true);
+    const interval = setInterval(() => fetchAll(false), 60000); // раз в минуту
     return () => clearInterval(interval);
   }, []);
 
-  async function fetchAll() {
+  async function fetchAll(isInitial = false) {
     try {
       const res = await fetch(API_GAMES);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const raw = await res.json();
       const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
       const serverPlayers: Player[] = (data.players || []).map((p: Player) => ({ ...p, password: '' }));
-      setPlayers(serverPlayers);
+      // Обновляем игроков только если пришли данные — не затираем при ошибке
+      if (serverPlayers.length > 0) {
+        setPlayers(serverPlayers);
+      }
       setPlayersLoaded(true);
 
       const serverGames: Game[] = (data.games || []).map((g: Game) => ({ placements: [], ...g }));
@@ -72,8 +76,14 @@ export default function App() {
       setGames(serverGames);
       setGamesLoaded(true);
     } catch {
+      // При ошибке сети — помечаем как загруженные, НО не сбрасываем данные
+      // чтобы не выкидывать залогиненного пользователя
       setPlayersLoaded(true);
       setGamesLoaded(true);
+      // Если это первичная загрузка и нет игроков — пробуем ещё раз через 3 сек
+      if (isInitial) {
+        setTimeout(() => fetchAll(false), 3000);
+      }
     }
   }
 
@@ -87,6 +97,20 @@ export default function App() {
   }
 
   useEffect(() => { saveLocal('sb_current_player', currentPlayerId); }, [currentPlayerId]);
+
+  // Подгружаем аватар текущего игрока отдельным запросом (base64 не входит в основной GET)
+  useEffect(() => {
+    if (!currentPlayerId) return;
+    fetch(`${API_PLAYERS}?id=${currentPlayerId}`)
+      .then(r => r.json())
+      .then(raw => {
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (data.player?.avatar) {
+          setPlayers(prev => prev.map(p => p.id === currentPlayerId ? { ...p, avatar: data.player.avatar } : p));
+        }
+      })
+      .catch(() => {});
+  }, [currentPlayerId]);
 
   // --- Auth ---
   async function handleLogin(email: string, password: string, name: string): Promise<string | null> {
@@ -127,6 +151,16 @@ export default function App() {
   function handleViewPlayer(playerId: string) {
     setViewingPlayerId(playerId);
     setActiveTab('profile');
+    // Подгружаем аватар просматриваемого игрока
+    fetch(`${API_PLAYERS}?id=${playerId}`)
+      .then(r => r.json())
+      .then(raw => {
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (data.player?.avatar) {
+          setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, avatar: data.player.avatar } : p));
+        }
+      })
+      .catch(() => {});
   }
 
   function handleCloseViewPlayer() {
@@ -345,8 +379,9 @@ export default function App() {
     }).catch(() => {});
   }
 
-  // --- Not logged in ---
-  if (!playersLoaded || !gamesLoaded) {
+  // Показываем загрузку только если данных ещё нет вообще
+  const hasData = players.length > 0;
+  if ((!playersLoaded || !gamesLoaded) && !hasData && !currentPlayerId) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--background))' }}>
         <div className="flex flex-col items-center gap-3">
@@ -360,7 +395,20 @@ export default function App() {
     );
   }
 
+  // Если не залогинен — экран входа
   if (!currentPlayer) {
+    // Если ID есть но игроки ещё грузятся — показываем загрузку, не выбрасываем
+    if (currentPlayerId && !playersLoaded) {
+      return (
+        <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--background))' }}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center font-montserrat font-black text-xl"
+              style={{ background: 'var(--gold)', color: 'hsl(var(--background))' }}>S</div>
+            <div className="text-xs text-muted-foreground animate-pulse">Загрузка...</div>
+          </div>
+        </div>
+      );
+    }
     return <LoginScreen players={players} onLogin={handleLogin} loading={authLoading} />;
   }
 
