@@ -65,30 +65,30 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
   const MEDALS = [
     {
       num: '1',
-      mobSize: 'text-5xl', lgSize: 'text-9xl',
+      mobSize: 'text-2xl', lgSize: 'text-5xl',  // одинаковый размер с 2 и 3
       gradient: 'linear-gradient(175deg, #fffbe0 0%, #ffe566 15%, #f5a623 35%, #b8700a 55%, #7a4500 72%, #e8a800 85%, #fff5a0 100%)',
       shadow: '0 0 32px rgba(255,180,0,0.9), 0 0 8px rgba(255,220,80,0.8)',
-      // фиолетовый → прозрачный для 1-го места
-      bgGradient: 'linear-gradient(to bottom, rgba(156,39,176,0.85) 0%, rgba(74,0,130,0.6) 50%, transparent 100%)',
-      bgGlow: 'rgba(156,39,176,0.4)',
+      bgColor: 'rgba(156,39,176,0.28)',
+      neonColor: 'rgba(190,60,220,0.7)',
+      blobColor: 'rgba(156,39,176,0.55)',
     },
     {
       num: '2',
       mobSize: 'text-2xl', lgSize: 'text-5xl',
       gradient: 'linear-gradient(160deg, #f5f5f5 0%, #c8c8c8 35%, #8a8a8a 65%, #e0e0e0 100%)',
       shadow: '0 2px 10px rgba(180,180,180,0.5), 0 1px 0 #fff inset',
-      // серебряный → прозрачный для 2-го места
-      bgGradient: 'linear-gradient(to bottom, rgba(180,180,180,0.8) 0%, rgba(100,100,100,0.5) 50%, transparent 100%)',
-      bgGlow: 'rgba(180,180,180,0.3)',
+      bgColor: 'rgba(160,160,160,0.22)',
+      neonColor: 'rgba(200,200,200,0.6)',
+      blobColor: 'rgba(160,160,160,0.50)',
     },
     {
       num: '3',
       mobSize: 'text-2xl', lgSize: 'text-5xl',
       gradient: 'linear-gradient(160deg, #f0c080 0%, #cd7f32 35%, #7c4a00 65%, #e8a84a 100%)',
       shadow: '0 2px 10px rgba(205,127,50,0.5), 0 1px 0 #f5d9a0 inset',
-      // бронзовый → прозрачный для 3-го места
-      bgGradient: 'linear-gradient(to bottom, rgba(205,127,50,0.8) 0%, rgba(120,70,0,0.5) 50%, transparent 100%)',
-      bgGlow: 'rgba(205,127,50,0.3)',
+      bgColor: 'rgba(205,127,50,0.22)',
+      neonColor: 'rgba(230,160,50,0.65)',
+      blobColor: 'rgba(205,127,50,0.50)',
     },
   ];
 
@@ -125,23 +125,30 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
             const podiumStyle = getPodiumStyle(playerRank, rank as 0 | 1 | 2);
 
             const MetalNum = ({ isMob }: { isMob: boolean }) => {
-              const w = isMob ? (rank === 0 ? 52 : 38) : (rank === 0 ? 110 : 74);
-              const h = isMob ? (rank === 0 ? 62 : 46) : (rank === 0 ? 130 : 88);
+              const w = isMob ? 38 : 74;
+              const h = isMob ? 52 : 96;
               return (
                 <div
                   className="relative flex items-center justify-center select-none flex-shrink-0"
                   style={{ width: w, height: h }}
                 >
-                  {/* Острый фон: скруглён сверху, острый треугольный низ */}
-                  <div
-                    aria-hidden
-                    style={{
-                      position: 'absolute', inset: 0,
-                      background: medal.bgGradient,
-                      clipPath: 'polygon(8% 0%, 92% 0%, 100% 12%, 100% 72%, 50% 100%, 0% 72%, 0% 12%)',
-                      boxShadow: `0 0 24px ${medal.bgGlow}`,
-                    }}
-                  />
+                  {/* Blob-свет — исходит сверху (от аватарки), размывается книзу */}
+                  <div aria-hidden style={{
+                    position: 'absolute',
+                    top: '-60%', left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '200%', height: '160%',
+                    background: `radial-gradient(ellipse 60% 55% at 50% 0%, ${medal.blobColor} 0%, transparent 75%)`,
+                    filter: 'blur(10px)',
+                    pointerEvents: 'none',
+                  }} />
+                  {/* Острая фигура: полупрозрачная заливка + неоновый border */}
+                  <div aria-hidden style={{
+                    position: 'absolute', inset: 0,
+                    background: medal.bgColor,
+                    clipPath: 'polygon(10% 0%, 90% 0%, 100% 15%, 100% 70%, 50% 100%, 0% 70%, 0% 15%)',
+                    boxShadow: `0 0 8px ${medal.neonColor}, inset 0 0 6px ${medal.neonColor}`,
+                  }} />
                   <span
                     className={`relative z-10 ${isMob ? medal.mobSize : medal.lgSize}`}
                     style={{
@@ -153,7 +160,7 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                       filter: `drop-shadow(${medal.shadow.split(',')[0]})`,
                       lineHeight: 1,
                       letterSpacing: '-0.02em',
-                      paddingBottom: '0.2em',
+                      paddingBottom: '0.15em',
                     }}
                   >
                     {medal.num}
