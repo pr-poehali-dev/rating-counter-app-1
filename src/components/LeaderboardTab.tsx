@@ -225,7 +225,7 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <RankIcon val={getRankEmoji(rank)} size={14} />
+                    <RankIcon val={getRankEmoji(rank)} size={22} />
                     <span>{getRankLabel(rank)}</span>
                     <span className="mx-1">·</span>
                     <span className="text-green-400">{winRate}% побед</span>

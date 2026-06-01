@@ -56,7 +56,7 @@ export function getRankLabel(rank: Rank): string {
     shark: 'Акула',
     dragon: 'Дракон',
     skull: 'Владыка',
-    queen: 'Королева тьмы',
+    queen: 'Фантом',
   };
   return labels[rank];
 }
