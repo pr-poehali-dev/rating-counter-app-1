@@ -47,13 +47,35 @@ export default function App() {
 
   async function fetchAll(isInitial = false) {
     try {
-      const res = await fetch(API_GAMES);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const raw = await res.json();
+      // Запускаем параллельно: основные данные + аватар текущего игрока
+      const savedPlayerId = loadLocal<string | null>('sb_current_player', null);
+      const requests: Promise<Response>[] = [fetch(API_GAMES)];
+      if (savedPlayerId) {
+        requests.push(fetch(`${API_PLAYERS}?id=${savedPlayerId}`));
+      }
+      const responses = await Promise.all(requests);
+      if (!responses[0].ok) throw new Error(`HTTP ${responses[0].status}`);
+
+      const raw = await responses[0].json();
       const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
-      const serverPlayers: Player[] = (data.players || []).map((p: Player) => ({ ...p, password: '' }));
-      // Обновляем игроков только если пришли данные — не затираем при ошибке
+      // Получаем аватар из параллельного запроса
+      let myAvatar = '';
+      if (responses[1]) {
+        try {
+          const avatarRaw = await responses[1].json();
+          const avatarData = typeof avatarRaw === 'string' ? JSON.parse(avatarRaw) : avatarRaw;
+          myAvatar = avatarData.player?.avatar || '';
+        } catch { /* игнорируем */ }
+      }
+
+      const serverPlayers: Player[] = (data.players || []).map((p: Player) => ({
+        ...p,
+        password: '',
+        // Подставляем аватар для текущего игрока сразу при загрузке
+        avatar: savedPlayerId && p.id === savedPlayerId ? (myAvatar || p.avatar || '') : (p.avatar || ''),
+      }));
+
       if (serverPlayers.length > 0) {
         setPlayers(serverPlayers);
       }
@@ -98,9 +120,12 @@ export default function App() {
 
   useEffect(() => { saveLocal('sb_current_player', currentPlayerId); }, [currentPlayerId]);
 
-  // Подгружаем аватар текущего игрока отдельным запросом (base64 не входит в основной GET)
+  // После логина — подгружаем аватар (при первичной загрузке уже делается в fetchAll)
   useEffect(() => {
     if (!currentPlayerId) return;
+    // Проверяем, есть ли аватар уже в state
+    const alreadyHasAvatar = players.find(p => p.id === currentPlayerId)?.avatar;
+    if (alreadyHasAvatar) return;
     fetch(`${API_PLAYERS}?id=${currentPlayerId}`)
       .then(r => r.json())
       .then(raw => {
@@ -110,7 +135,7 @@ export default function App() {
         }
       })
       .catch(() => {});
-  }, [currentPlayerId]);
+  }, [currentPlayerId, players.length]);
 
   // --- Auth ---
   async function handleLogin(email: string, password: string, name: string): Promise<string | null> {
