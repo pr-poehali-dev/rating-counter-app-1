@@ -27,23 +27,24 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
   const top3 = sorted.slice(0, 3);
 
   const podiumOrder = [
-    top3[1] ? { player: top3[1], rank: 1, podiumH: '56px', lgPodiumH: '72px', avatarCls: 'w-14 h-14 lg:w-16 lg:h-16', medal: '🥈' } : null,
-    top3[0] ? { player: top3[0], rank: 0, podiumH: '72px', lgPodiumH: '96px', avatarCls: 'w-16 h-16 lg:w-20 lg:h-20', medal: '🥇' } : null,
-    top3[2] ? { player: top3[2], rank: 2, podiumH: '40px', lgPodiumH: '52px', avatarCls: 'w-12 h-12 lg:w-14 lg:h-14', medal: '🥉' } : null,
+    top3[1] ? { player: top3[1], rank: 1, podiumH: '56px', lgPodiumH: '80px', avatarMob: 'w-14 h-14', avatarLg: 'w-24 h-24', medal: '🥈' } : null,
+    top3[0] ? { player: top3[0], rank: 0, podiumH: '72px', lgPodiumH: '110px', avatarMob: 'w-16 h-16', avatarLg: 'w-32 h-32', medal: '🥇' } : null,
+    top3[2] ? { player: top3[2], rank: 2, podiumH: '40px', lgPodiumH: '60px', avatarMob: 'w-12 h-12', avatarLg: 'w-20 h-20', medal: '🥉' } : null,
   ];
 
   return (
     <div className="pb-6 lg:pb-8 animate-fade-in">
       {/* Top 3 podium */}
-      <div className="px-4 lg:px-8 pt-4 lg:pt-8 mb-4 lg:mb-8">
-        <h2 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground mb-4 lg:mb-6">
+      <div className="px-4 pt-4 mb-4 lg:px-8 lg:pt-10 lg:mb-10">
+        <h2 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground mb-4 lg:mb-8 lg:text-center">
           Топ игроки
         </h2>
 
-        <div className="flex gap-3 lg:gap-6 items-end mb-2 max-w-lg lg:max-w-xl mx-auto lg:mx-0">
+        {/* Mobile: left-aligned; Desktop: centered with max-width */}
+        <div className="flex gap-3 items-end mb-2 max-w-lg mx-auto lg:max-w-2xl lg:mx-auto lg:gap-8">
           {podiumOrder.map((entry, i) => {
             if (!entry) return <div key={i} className="flex-1" />;
-            const { player, rank, podiumH, lgPodiumH, avatarCls, medal } = entry;
+            const { player, rank, podiumH, lgPodiumH, avatarMob, avatarLg, medal } = entry;
             const flame = FLAME[rank];
             const isMe = player.id === currentPlayerId;
 
@@ -51,20 +52,24 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
               <div
                 key={player.id}
                 onClick={() => !isMe && onPlayerClick(player.id)}
-                className="flex-1 flex flex-col items-center gap-1.5 lg:gap-2 animate-slide-up"
+                className="flex-1 flex flex-col items-center gap-1.5 lg:gap-3 animate-slide-up"
                 style={{ animationDelay: `${i * 0.1}s`, cursor: isMe ? 'default' : 'pointer' }}
               >
-                {rank === 0 && <div className="text-lg lg:text-2xl mb-1">👑</div>}
+                {rank === 0 && <div className="text-lg lg:text-4xl mb-1">👑</div>}
                 <div
-                  className={`${avatarCls} rounded-full flex items-center justify-center text-white font-montserrat font-bold border-2 overflow-hidden ${flame.ring}`}
+                  className={`${avatarMob} lg:hidden rounded-full flex items-center justify-center text-white font-montserrat font-bold border-2 overflow-hidden ${flame.ring}`}
                   style={{ backgroundColor: getAvatarColor(player.id) }}
                 >
-                  {player.avatar
-                    ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" />
-                    : getInitials(player.name)}
+                  {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
+                </div>
+                <div
+                  className={`${avatarLg} hidden lg:flex rounded-full items-center justify-center text-white font-montserrat font-bold text-2xl border-2 overflow-hidden ${flame.ring}`}
+                  style={{ backgroundColor: getAvatarColor(player.id) }}
+                >
+                  {player.avatar ? <img src={player.avatar} className="w-full h-full rounded-full object-cover" alt="" /> : getInitials(player.name)}
                 </div>
                 <div className="text-center">
-                  <div className="text-xs lg:text-sm font-montserrat font-700 text-foreground leading-tight">
+                  <div className="text-xs lg:text-base font-montserrat font-700 text-foreground leading-tight">
                     {player.name.split(' ')[0]}
                   </div>
                   <div className="text-xs lg:text-sm font-600" style={{ color: flame.pointColor }}>
@@ -72,10 +77,17 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
                   </div>
                 </div>
                 <div
-                  className="w-full rounded-t-md flex items-center justify-center py-2"
+                  className="w-full rounded-t-lg flex items-center justify-center py-2"
                   style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: podiumH }}
                 >
-                  <span className={rank === 0 ? 'text-xl lg:text-2xl' : 'text-base lg:text-xl'}>{medal}</span>
+                  <span className="lg:hidden">{medal}</span>
+                </div>
+                {/* Desktop podium block — taller */}
+                <div
+                  className="hidden lg:flex w-full rounded-t-xl items-center justify-center"
+                  style={{ background: flame.podiumBg, border: `1px solid ${flame.podiumBorder}`, height: lgPodiumH, fontSize: '2rem' }}
+                >
+                  {medal}
                 </div>
               </div>
             );
@@ -88,7 +100,7 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
         <h2 className="font-montserrat text-xs lg:text-sm font-700 uppercase tracking-widest text-muted-foreground mb-3 lg:mb-4">
           Все игроки
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-3">
+        <div className="grid grid-cols-1 gap-2 lg:gap-3">
           {sorted.map((player, idx) => {
             const rank = getRank(player.points);
             const isMe = player.id === currentPlayerId;
