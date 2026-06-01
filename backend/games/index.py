@@ -2,7 +2,6 @@ import json
 import os
 import psycopg2
 
-
 SCHEMA = 't_p17117659_rating_counter_app_1'
 
 CORS = {
@@ -17,7 +16,7 @@ def get_conn():
 
 
 def handler(event: dict, context) -> dict:
-    """Получение всех игр (GET) и сохранение/обновление игры (POST)."""
+    """GET — возвращает игры и игроков за один запрос. POST — сохраняет игру."""
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS, 'body': ''}
 
@@ -26,15 +25,23 @@ def handler(event: dict, context) -> dict:
     if method == 'GET':
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(f'SELECT id, data FROM {SCHEMA}.games ORDER BY (data->>\'createdAt\') DESC')
-        rows = cur.fetchall()
+        cur.execute(f"SELECT id, data FROM {SCHEMA}.games ORDER BY (data->>'createdAt') DESC")
+        game_rows = cur.fetchall()
+        cur.execute(
+            f'SELECT id, name, email, avatar, points, wins, losses, games_played, join_date, is_admin FROM {SCHEMA}.players ORDER BY points DESC'
+        )
+        player_rows = cur.fetchall()
         conn.close()
+
         games = []
-        for row in rows:
+        for row in game_rows:
             g = row[1]
             g['id'] = row[0]
             games.append(g)
-        return {'statusCode': 200, 'headers': CORS, 'body': json.dumps({'games': games})}
+
+        players = [_player_to_dict(r) for r in player_rows]
+
+        return {'statusCode': 200, 'headers': CORS, 'body': json.dumps({'games': games, 'players': players})}
 
     if method == 'POST':
         body = json.loads(event.get('body') or '{}')
@@ -57,3 +64,19 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 200, 'headers': CORS, 'body': json.dumps({'ok': True})}
 
     return {'statusCode': 405, 'headers': CORS, 'body': json.dumps({'error': 'Method not allowed'})}
+
+
+def _player_to_dict(row):
+    return {
+        'id': str(row[0]),
+        'name': row[1],
+        'email': row[2],
+        'avatar': row[3] or '',
+        'points': row[4],
+        'wins': row[5],
+        'losses': row[6],
+        'gamesPlayed': row[7],
+        'joinDate': str(row[8]),
+        'isAdmin': row[9],
+        'password': '',
+    }

@@ -36,29 +36,23 @@ export default function App() {
   const currentPlayer = players.find(p => p.id === currentPlayerId) ?? null;
   const isAdmin = currentPlayer?.isAdmin ?? false;
 
-  // Загружаем игроков и игры при старте, обновляем периодически
+  // Один запрос — загружает и игры, и игроков
   useEffect(() => {
-    fetchPlayers();
-    fetchGames();
-    const interval = setInterval(() => { fetchPlayers(); fetchGames(); }, 10000);
+    fetchAll();
+    const interval = setInterval(fetchAll, 600000); // раз в 10 минут
     return () => clearInterval(interval);
   }, []);
 
-  async function fetchPlayers() {
-    try {
-      const res = await fetch(API_PLAYERS);
-      const data = await res.json();
-      const serverPlayers: Player[] = (data.players || []).map((p: Player) => ({ ...p, password: '' }));
-      setPlayers(serverPlayers);
-      setPlayersLoaded(true);
-    } catch { setPlayersLoaded(true); }
-  }
-
-  async function fetchGames() {
+  async function fetchAll() {
     try {
       const res = await fetch(API_GAMES);
       const raw = await res.json();
       const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+
+      const serverPlayers: Player[] = (data.players || []).map((p: Player) => ({ ...p, password: '' }));
+      setPlayers(serverPlayers);
+      setPlayersLoaded(true);
+
       const serverGames: Game[] = (data.games || []).map((g: Game) => ({ placements: [], ...g }));
 
       // Если на сервере пусто — мигрируем из localStorage (одноразово)
@@ -75,7 +69,10 @@ export default function App() {
 
       setGames(serverGames);
       setGamesLoaded(true);
-    } catch { setGamesLoaded(true); }
+    } catch {
+      setPlayersLoaded(true);
+      setGamesLoaded(true);
+    }
   }
 
   // Сохраняет одну игру на сервер
@@ -142,7 +139,7 @@ export default function App() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, updates }),
-    }).then(() => fetchPlayers()).catch(() => {});
+    }).catch(() => {});
   }
 
   // --- Games ---
