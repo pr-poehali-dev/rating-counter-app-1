@@ -1,6 +1,12 @@
 import { Player, Game, getRank, getNextRankThreshold } from '@/data/store';
 import Icon from '@/components/ui/icon';
 
+const TOP3_FLAME = [
+  { ring: 'flame-ring-1', glow: '#9c27b0', heroBg: 'linear-gradient(180deg, rgba(74,20,140,0.35) 0%, rgba(0,0,0,0) 100%)', badge: '#ce93d8', badgeBg: 'rgba(156,39,176,0.15)', label: '🔥 1-е место' },
+  { ring: 'flame-ring-2', glow: '#f5a623', heroBg: 'linear-gradient(180deg, rgba(230,115,0,0.25) 0%, rgba(0,0,0,0) 100%)', badge: '#ffe082', badgeBg: 'rgba(245,166,35,0.15)', label: '🔥 2-е место' },
+  { ring: 'flame-ring-3', glow: '#e53935', heroBg: 'linear-gradient(180deg, rgba(183,28,28,0.25) 0%, rgba(0,0,0,0) 100%)', badge: '#ff5252', badgeBg: 'rgba(229,57,53,0.15)', label: '🔥 3-е место' },
+];
+
 function getAvatarColor(id: string): string {
   const colors = ['#E53935', '#1E88E5', '#43A047', '#F5A623', '#8E24AA', '#00ACC1', '#FF6F00'];
   return colors[parseInt(id) % colors.length];
@@ -45,13 +51,21 @@ export default function PlayerProfileView({ player, allPlayers, games, onClose }
   );
 
   const rankIndex = [...allPlayers].sort((a, b) => b.points - a.points).findIndex(p => p.id === player.id) + 1;
+  const flame = rankIndex >= 1 && rankIndex <= 3 ? TOP3_FLAME[rankIndex - 1] : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'hsl(var(--background))' }}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#000' }}>
+      {/* Animated fire background */}
+      <div aria-hidden style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        background: `radial-gradient(ellipse 70% 55% at 50% 130%, #ff6a00 0%, #ff4500 30%, transparent 70%), radial-gradient(ellipse 50% 40% at 20% 130%, #ff8c00 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 80% 130%, #ff4500 0%, transparent 65%), #000`,
+        backgroundSize: '200% 200%, 150% 150%, 150% 150%, 100% 100%',
+        animation: 'fireBg 5s ease-in-out infinite, fireOpacity 3s ease-in-out infinite',
+      }} />
       {/* Header */}
       <div
         className="flex items-center gap-3 px-4 py-3 flex-shrink-0"
-        style={{ background: 'hsl(220 16% 7%)', borderBottom: '1px solid hsl(var(--border))' }}
+        style={{ position: 'relative', zIndex: 1, background: 'rgba(5,5,8,0.75)', backdropFilter: 'blur(12px)', borderBottom: '1px solid hsl(var(--border))' }}
       >
         <button
           onClick={onClose}
@@ -63,21 +77,27 @@ export default function PlayerProfileView({ player, allPlayers, games, onClose }
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-6 max-w-lg mx-auto w-full">
+      <div className="flex-1 overflow-y-auto pb-6 max-w-lg mx-auto w-full" style={{ position: 'relative', zIndex: 1 }}>
         {/* Hero */}
         <div
           className="relative px-4 pt-6 pb-6"
-          style={{ background: 'linear-gradient(180deg, hsl(220 14% 13%) 0%, hsl(var(--background)) 100%)' }}
+          style={{ background: flame ? flame.heroBg : 'linear-gradient(180deg, hsl(220 14% 13%) 0%, rgba(0,0,0,0) 100%)' }}
         >
           <div
-            className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-3xl pointer-events-none"
-            style={{ background: rankInfo.color }}
+            className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none"
+            style={{ background: flame ? flame.glow : rankInfo.color }}
           />
+          {flame && (
+            <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full font-montserrat font-700 text-xs"
+              style={{ background: flame.badgeBg, color: flame.badge, border: `1px solid ${flame.badge}40` }}>
+              {flame.label}
+            </div>
+          )}
 
           <div className="flex items-center gap-4">
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xl overflow-hidden border-2 flex-shrink-0"
-              style={{ backgroundColor: getAvatarColor(player.id), borderColor: rankInfo.color, boxShadow: `0 0 20px ${rankInfo.color}50` }}
+              className={`w-20 h-20 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xl overflow-hidden border-2 flex-shrink-0${flame ? ` ${flame.ring}` : ''}`}
+              style={{ backgroundColor: getAvatarColor(player.id), borderColor: flame ? flame.badge : rankInfo.color, boxShadow: flame ? undefined : `0 0 20px ${rankInfo.color}50` }}
             >
               {player.avatar ? (
                 <img src={player.avatar} className="w-full h-full object-cover" alt="" />

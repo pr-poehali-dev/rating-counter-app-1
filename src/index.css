@@ -68,51 +68,6 @@
     min-height: 100vh;
   }
 
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background:
-      radial-gradient(
-        ellipse 60% 80% at 30% 100%,
-        #ff4500cc 0%,
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 50% 70% at 70% 100%,
-        #ff6a00bb 0%,
-        transparent 55%
-      ),
-      radial-gradient(
-        ellipse 40% 60% at 50% 100%,
-        #ff8c00aa 0%,
-        transparent 50%
-      ),
-      #000;
-    animation: flameDance 4s ease-in-out infinite alternate;
-  }
-
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background:
-      radial-gradient(
-        ellipse 35% 55% at 20% 95%,
-        #ff2200aa 0%,
-        transparent 55%
-      ),
-      radial-gradient(
-        ellipse 45% 65% at 80% 98%,
-        #ff5500aa 0%,
-        transparent 55%
-      ),
-      radial-gradient(ellipse 30% 45% at 50% 90%, #ffaa0077 0%, transparent 50%);
-    animation: flameDance2 3s ease-in-out infinite alternate;
-  }
-
   h1,
   h2,
   h3,
@@ -184,6 +139,120 @@
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
   }
+}
+
+/* ===== FIRE BACKGROUND ===== */
+@keyframes fireBg {
+  0% {
+    background-position:
+      50% 100%,
+      30% 100%,
+      70% 100%,
+      50% 100%;
+  }
+  25% {
+    background-position:
+      45% 95%,
+      20% 98%,
+      75% 96%,
+      55% 99%;
+  }
+  50% {
+    background-position:
+      55% 98%,
+      35% 96%,
+      65% 99%,
+      48% 97%;
+  }
+  75% {
+    background-position:
+      48% 96%,
+      25% 99%,
+      72% 97%,
+      52% 98%;
+  }
+  100% {
+    background-position:
+      50% 100%,
+      30% 100%,
+      70% 100%,
+      50% 100%;
+  }
+}
+
+@keyframes fireOpacity {
+  0% {
+    opacity: 1;
+  }
+  33% {
+    opacity: 0.82;
+  }
+  66% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ===== AVATAR FLAMES ===== */
+@keyframes flameRing1 {
+  0%,
+  100% {
+    box-shadow:
+      0 0 12px 4px #9c27b0cc,
+      0 0 28px 8px #7b1fa280,
+      0 0 48px 14px #4a148c40;
+  }
+  50% {
+    box-shadow:
+      0 0 18px 6px #ce93d8cc,
+      0 0 36px 12px #9c27b080,
+      0 0 60px 18px #7b1fa240;
+  }
+}
+@keyframes flameRing2 {
+  0%,
+  100% {
+    box-shadow:
+      0 0 12px 4px #f5a623cc,
+      0 0 28px 8px #ff8f0080,
+      0 0 48px 14px #e65100aa;
+  }
+  50% {
+    box-shadow:
+      0 0 18px 6px #ffe082cc,
+      0 0 36px 12px #ffa000aa,
+      0 0 60px 18px #ff6f0080;
+  }
+}
+@keyframes flameRing3 {
+  0%,
+  100% {
+    box-shadow:
+      0 0 12px 4px #e53935cc,
+      0 0 28px 8px #c6282880,
+      0 0 48px 14px #b71c1c50;
+  }
+  50% {
+    box-shadow:
+      0 0 18px 6px #ff5252cc,
+      0 0 36px 12px #e5393580,
+      0 0 60px 18px #c6282840;
+  }
+}
+
+.flame-ring-1 {
+  animation: flameRing1 2s ease-in-out infinite;
+  border-color: #ce93d8 !important;
+}
+.flame-ring-2 {
+  animation: flameRing2 2.3s ease-in-out infinite;
+  border-color: #ffe082 !important;
+}
+.flame-ring-3 {
+  animation: flameRing3 1.8s ease-in-out infinite;
+  border-color: #ff5252 !important;
 }
 
 @keyframes flameDance {

@@ -2,6 +2,12 @@ import { useState, useRef } from 'react';
 import { Player, Game, getRank, getNextRankThreshold } from '@/data/store';
 import Icon from '@/components/ui/icon';
 
+const TOP3_FLAME = [
+  { ring: 'flame-ring-1', glow: '#9c27b0', heroBg: 'linear-gradient(180deg, rgba(74,20,140,0.35) 0%, rgba(0,0,0,0) 100%)', badge: '#ce93d8', badgeBg: 'rgba(156,39,176,0.15)', label: '🔥 1-е место' },
+  { ring: 'flame-ring-2', glow: '#f5a623', heroBg: 'linear-gradient(180deg, rgba(230,115,0,0.25) 0%, rgba(0,0,0,0) 100%)', badge: '#ffe082', badgeBg: 'rgba(245,166,35,0.15)', label: '🔥 2-е место' },
+  { ring: 'flame-ring-3', glow: '#e53935', heroBg: 'linear-gradient(180deg, rgba(183,28,28,0.25) 0%, rgba(0,0,0,0) 100%)', badge: '#ff5252', badgeBg: 'rgba(229,57,53,0.15)', label: '🔥 3-е место' },
+];
+
 interface ProfileTabProps {
   player: Player;
   onUpdatePlayer: (updates: Partial<Player>) => void;
@@ -45,6 +51,7 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
     ? Math.round((player.wins / player.gamesPlayed) * 100) : 0;
 
   const myRankIndex = allPlayers.sort((a, b) => b.points - a.points).findIndex(p => p.id === player.id) + 1;
+  const flame = myRankIndex >= 1 && myRankIndex <= 3 ? TOP3_FLAME[myRankIndex - 1] : null;
 
   // Собираем все выполненные доп. задания игрока
   const completedTasks = games.flatMap(game =>
@@ -73,19 +80,26 @@ export default function ProfileTab({ player, onUpdatePlayer, allPlayers, games, 
   return (
     <div className="pb-6 animate-fade-in">
       {/* Profile hero */}
-      <div className="relative px-4 pt-4 pb-6" style={{ background: 'linear-gradient(180deg, hsl(220 14% 13%) 0%, hsl(var(--background)) 100%)' }}>
-        {/* Rank badge background glow */}
+      <div className="relative px-4 pt-4 pb-6" style={{ background: flame ? flame.heroBg : 'linear-gradient(180deg, hsl(220 14% 13%) 0%, rgba(0,0,0,0) 100%)' }}>
+        {/* Rank / flame glow */}
         <div
-          className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-3xl pointer-events-none"
-          style={{ background: rankInfo.color }}
+          className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none"
+          style={{ background: flame ? flame.glow : rankInfo.color }}
         />
+        {/* Top-3 badge */}
+        {flame && (
+          <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full font-montserrat font-700 text-xs"
+            style={{ background: flame.badgeBg, color: flame.badge, border: `1px solid ${flame.badge}40` }}>
+            {flame.label}
+          </div>
+        )}
 
         <div className="flex items-center gap-4">
           {/* Avatar */}
           <div className="relative">
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xl overflow-hidden border-2"
-              style={{ backgroundColor: getAvatarColor(player.id), borderColor: rankInfo.color, boxShadow: `0 0 20px ${rankInfo.color}50` }}
+              className={`w-20 h-20 rounded-full flex items-center justify-center text-white font-montserrat font-bold text-xl overflow-hidden border-2${flame ? ` ${flame.ring}` : ''}`}
+              style={{ backgroundColor: getAvatarColor(player.id), borderColor: flame ? flame.badge : rankInfo.color, boxShadow: flame ? undefined : `0 0 20px ${rankInfo.color}50` }}
             >
               {player.avatar ? (
                 <img src={player.avatar} className="w-full h-full object-cover" alt="" />

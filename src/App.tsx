@@ -368,10 +368,25 @@ export default function App() {
   const avatarColors = ['#E53935', '#1E88E5', '#43A047', '#F5A623', '#8E24AA', '#00ACC1', '#FF6F00'];
 
   return (
-    <div className="min-h-screen" style={{ background: 'hsl(var(--background))' }}>
+    <div className="min-h-screen" style={{ background: 'transparent' }}>
+      {/* Animated fire background */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          background: `
+            radial-gradient(ellipse 70% 55% at 50% 130%, #ff6a00 0%, #ff4500 30%, transparent 70%),
+            radial-gradient(ellipse 50% 40% at 20% 130%, #ff8c00 0%, transparent 65%),
+            radial-gradient(ellipse 50% 40% at 80% 130%, #ff4500 0%, transparent 65%),
+            radial-gradient(ellipse 35% 30% at 50% 120%, #ffaa00 0%, transparent 60%),
+            #000`,
+          backgroundSize: '200% 200%, 150% 150%, 150% 150%, 120% 120%, 100% 100%',
+          animation: 'fireBg 5s ease-in-out infinite, fireOpacity 3s ease-in-out infinite',
+        }}
+      />
       <div
         className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between"
-        style={{ background: 'hsl(220 16% 7%)', borderBottom: '1px solid hsl(var(--border))' }}
+        style={{ background: 'rgba(5,5,8,0.75)', backdropFilter: 'blur(12px)', borderBottom: '1px solid hsl(var(--border))' }}
       >
         <div className="flex items-center gap-2.5">
           <div
@@ -401,7 +416,7 @@ export default function App() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto pb-20">
+      <div className="max-w-lg mx-auto pb-20" style={{ position: 'relative', zIndex: 1 }}>
         {activeTab === 'leaderboard' && (
           <LeaderboardTab players={players} currentPlayerId={currentPlayerId!} onPlayerClick={handleViewPlayer} />
         )}
@@ -427,7 +442,7 @@ export default function App() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 z-50"
-        style={{ background: 'hsl(220 16% 7%)', borderTop: '1px solid hsl(var(--border))' }}>
+        style={{ background: 'rgba(5,5,8,0.8)', backdropFilter: 'blur(12px)', borderTop: '1px solid hsl(var(--border))' }}>
         <div className="max-w-lg mx-auto flex relative">
           {tabs.map(tab => {
             const isActive = activeTab === tab.key;
