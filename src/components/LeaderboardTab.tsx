@@ -72,14 +72,16 @@ export default function LeaderboardTab({ players, currentPlayerId, onPlayerClick
 
             const MetalNum = ({ cls }: { cls: string }) => (
               <span
-                className={`font-montserrat font-black ${cls} select-none`}
+                className={`${cls} select-none`}
                 style={{
+                  fontFamily: '"Bebas Neue", sans-serif',
                   background: medal.gradient,
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
                   filter: `drop-shadow(${medal.shadow.split(',')[0]})`,
                   lineHeight: 1,
+                  letterSpacing: '-0.02em',
                 }}
               >
                 {medal.num}
