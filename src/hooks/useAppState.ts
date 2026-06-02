@@ -77,7 +77,15 @@ export function useAppState() {
         }
       }
 
-      setGames(serverGames);
+      // Мержим серверные игры с локальными: локальные игры которых нет на сервере
+      // (ещё не сохранились) не теряются — они остаются и уйдут на сервер при следующем syncGame
+      setGames(prev => {
+        const serverIds = new Set(serverGames.map(g => g.id));
+        const localOnly = prev.filter(g => !serverIds.has(g.id));
+        // Локальные игры которых нет на сервере — сразу пробуем сохранить
+        localOnly.forEach(g => syncGame(g));
+        return [...serverGames, ...localOnly];
+      });
       setGamesLoaded(true);
     } catch {
       setPlayersLoaded(true);
@@ -88,12 +96,19 @@ export function useAppState() {
     }
   }
 
-  function syncGame(game: Game) {
-    fetch(API_GAMES, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ game }),
-    }).catch(() => {});
+  async function syncGame(game: Game, retries = 3): Promise<boolean> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch(API_GAMES, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ game }),
+        });
+        if (res.ok) return true;
+      } catch { /* продолжаем */ }
+      if (attempt < retries) await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+    return false;
   }
 
   useEffect(() => { saveLocal('sb_current_player', currentPlayerId); }, [currentPlayerId]);
@@ -288,7 +303,7 @@ export function useAppState() {
     });
   }
 
-  function finishGame(gameId: string, placements: string[]) {
+  async function finishGame(gameId: string, placements: string[]) {
     const game = games.find(g => g.id === gameId);
     if (!game) return;
 
@@ -296,7 +311,14 @@ export function useAppState() {
     const finishedGame = { ...game, status: 'finished' as const, placements, winnerTeamId: placements[0] ?? null };
 
     setGames(prev => prev.map(g => g.id === gameId ? finishedGame : g));
-    syncGame(finishedGame);
+
+    const saved = await syncGame(finishedGame);
+    if (!saved) {
+      // Не удалось сохранить — откатываем игру обратно в активное состояние
+      setGames(prev => prev.map(g => g.id === gameId ? game : g));
+      alert('Не удалось сохранить результаты. Проверьте соединение и попробуйте снова.');
+      return;
+    }
 
     if (currentPlayerId) {
       const winnerTeamId = placements[0];
@@ -306,7 +328,6 @@ export function useAppState() {
       }
     }
 
-    // Используем функциональный setPlayers чтобы избежать stale closure
     setPlayers(prevPlayers => {
       const updatedPlayers = prevPlayers.map(p => {
         const teamIdx = placements.findIndex(teamId => {
@@ -328,7 +349,6 @@ export function useAppState() {
         };
       });
 
-      // Синхронизируем изменённых игроков с сервером
       const allGamePlayerIds = placements.flatMap(teamId =>
         game.teams.find(t => t.id === teamId)?.playerIds ?? []
       );
