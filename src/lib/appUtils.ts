@@ -4,8 +4,9 @@ export const API_AUTH    = 'https://functions.poehali.dev/60849d96-2815-4a4a-819
 export const API_PLAYERS = 'https://functions.poehali.dev/bef8ca0b-1403-449d-b4a0-55ffe3af9432';
 export const API_GAMES   = 'https://functions.poehali.dev/76b5dfc5-1eb5-46b7-8930-bfefc4e9a5a8';
 
-let nextId = 100;
-export function uid() { return String(++nextId); }
+export function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
 
 export function loadLocal<T>(key: string, fallback: T): T {
   try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; }
