@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
 import { Player, Game, Team } from '@/data/store';
 import {
   API_AUTH, API_PLAYERS, API_GAMES,
@@ -89,19 +88,12 @@ export function useAppState() {
     }
   }
 
-  async function syncGame(game: Game, retries = 3): Promise<boolean> {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const res = await fetch(API_GAMES, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ game }),
-        });
-        if (res.ok) return true;
-      } catch { /* продолжаем */ }
-      if (attempt < retries) await new Promise(r => setTimeout(r, 1000 * attempt));
-    }
-    return false;
+  function syncGame(game: Game) {
+    fetch(API_GAMES, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ game }),
+    }).catch(() => {});
   }
 
   useEffect(() => { saveLocal('sb_current_player', currentPlayerId); }, [currentPlayerId]);
@@ -296,7 +288,7 @@ export function useAppState() {
     });
   }
 
-  async function finishGame(gameId: string, placements: string[]) {
+  function finishGame(gameId: string, placements: string[]) {
     const game = games.find(g => g.id === gameId);
     if (!game) return;
 
@@ -304,14 +296,7 @@ export function useAppState() {
     const finishedGame = { ...game, status: 'finished' as const, placements, winnerTeamId: placements[0] ?? null };
 
     setGames(prev => prev.map(g => g.id === gameId ? finishedGame : g));
-
-    const saved = await syncGame(finishedGame);
-    if (!saved) {
-      toast.error('Не удалось сохранить результаты игры. Проверьте соединение и попробуйте снова.', { duration: 8000 });
-      setGames(prev => prev.map(g => g.id === gameId ? game : g));
-      return;
-    }
-    toast.success('Игра завершена и сохранена!');
+    syncGame(finishedGame);
 
     if (currentPlayerId) {
       const winnerTeamId = placements[0];

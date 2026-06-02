@@ -2,7 +2,6 @@ import { useAppState } from '@/hooks/useAppState';
 import LoginScreen from '@/components/LoginScreen';
 import PlayerProfileView from '@/components/PlayerProfileView';
 import AppLayout from '@/components/AppLayout';
-import { Toaster } from 'sonner';
 
 function LoadingScreen() {
   return (
@@ -60,8 +59,6 @@ export default function App() {
   }
 
   return (
-    <>
-    <Toaster position="top-center" theme="dark" richColors />
     <AppLayout
       activeTab={activeTab}
       setActiveTab={setActiveTab}
@@ -87,6 +84,5 @@ export default function App() {
       onAddBonusTask={addBonusTask}
       onCompleteBonusTask={completeBonusTask}
     />
-    </>
   );
 }
